@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#010218">
+<title>No internet connection | Dezzme</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+html,body{height:100%}
+body{display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#fff;
+  background:linear-gradient(-45deg,#010218,#070924,#070924);background-attachment:fixed;-webkit-font-smoothing:antialiased}
+.card{width:100%;max-width:340px}
+.ic{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:#FF2D2D;background:rgba(255,45,45,.14);border:1px solid rgba(255,45,45,.35)}
+.ic svg{width:48%;height:48%;display:block}
+h1{font-size:.98rem;font-weight:700}
+p{margin:8px 0 20px;font-size:.74rem;line-height:1.7;color:rgba(255,255,255,.62)}
+.msg{min-height:1.4em;margin:-10px 0 12px;font-size:.7rem;color:#ff7d7d}
+button{height:30px;min-width:140px;padding:0 22px;border:none;border-radius:5px;background:#dc3838;color:#000;
+  font-size:.79rem;font-weight:700;cursor:pointer;transition:background .2s ease,transform .15s ease}
+button:hover{background:#c92f2f}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.6;cursor:default}
+@media(max-width:490px){h1{font-size:1.05rem}p{font-size:.8rem}button{font-size:.85rem;height:33px}.ic{width:70px;height:70px}}
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+    </div>
+    <h1>No internet connection</h1>
+    <p>Check your Wi-Fi or mobile data, then try again.</p>
+    <div class="msg" id="msg"></div>
+    <button type="button" id="btn" onclick="retry()">Retry</button>
+</div>
+<script>
+/* Retry: ask the network for a tiny static file (a page request would run the page's PHP and count a view); if it answers, load the page for real */
+function retry(){
+    var b = document.getElementById('btn'), m = document.getElementById('msg');
+    b.disabled = true; b.textContent = 'Checking…'; m.textContent = '';
+    fetch('sw.js?c=' + Date.now(), {method:'HEAD', cache:'no-store', credentials:'same-origin'}).then(function(r){
+        if(r.status < 500) location.reload();
+        else throw new Error('down');
+    }).catch(function(){
+        b.disabled = false; b.textContent = 'Retry'; m.textContent = 'Still no connection. Please try again.';
+    });
+}
+/* and try again by itself as soon as the device says it is back online */
+window.addEventListener('online', retry);
+</script>
+</body>
+</html>

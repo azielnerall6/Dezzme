@@ -1,0 +1,766 @@
+{
+  "intents": [
+
+    {
+      "tag": "greeting",
+      "patterns": [
+        "hi", "hello", "hey", "what's up", "wassup", "yo", "hola",
+        "good morning", "good evening", "good afternoon", "sup",
+        "hey dezzme", "hello bot", "hi there", "howdy", "greetings",
+        "heyy", "heyyy", "hey bot", "hello dezzme", "what's good"
+      ],
+      "responses": [
+        "Hey! 👋 Welcome to Dezzme — the internet's home for meme culture. Ask me anything about features, users, meme history, internet culture, or how things work here!",
+        "Yo! 😎 I'm DezzBot — your Dezzme AI guide. I can tell you about any Dezzme feature, look up users, share meme culture knowledge, and give you live stats. What do you need?",
+        "Hello there! 👀 I'm your Dezzme assistant. Ask me about features, users, memes, internet culture, pods — literally anything. I got you! 🔥",
+        "Wassup! I know everything about Dezzme AND meme culture. Try asking me about a user, a feature, meme history, or how many people are on Dezzme right now!"
+      ]
+    },
+
+    {
+      "tag": "goodbye",
+      "patterns": [
+        "bye", "goodbye", "see you", "see ya", "later", "peace",
+        "cya", "take care", "ttyl", "i'm done", "exit", "quit", "close",
+        "laters", "peace out", "deuces", "adios", "buh bye"
+      ],
+      "responses": [
+        "See ya! 👋 Stay legendary on Dezzme.",
+        "Later! 🔥 Keep posting those fire memes.",
+        "Peace out! ✌️ Come back anytime — I'm always here.",
+        "Bye! 😊 Dezzme's always here when you need it.",
+        "Later gator! 🐊 Stay funny, stay blessed, keep it meme."
+      ]
+    },
+
+    {
+      "tag": "thanks",
+      "patterns": [
+        "thanks", "thank you", "thx", "ty", "appreciate it",
+        "thank you so much", "thanks a lot", "much appreciated",
+        "helpful", "that helped", "you're the best", "goat",
+        "that's what i needed", "perfect answer"
+      ],
+      "responses": [
+        "Anytime! 😊 That's exactly what I'm here for.",
+        "No problem at all! 🙌 Anything else? I know a LOT.",
+        "Happy to help! Keep being awesome on Dezzme. 🔥",
+        "Of course! 💪 Hit me up whenever you need anything.",
+        "You're welcome! 😎 Now go post some fire content!"
+      ]
+    },
+
+    {
+      "tag": "live_stats",
+      "patterns": [
+        "how many people are on dezzme", "how many users does dezzme have",
+        "how many members", "dezzme user count", "total users",
+        "how many pods", "how many groups", "how many memes",
+        "dezzme statistics", "dezzme stats", "platform stats",
+        "how big is dezzme", "how many people use dezzme",
+        "how many likes total", "how many posts", "how active is dezzme",
+        "how many sounds", "how many messages", "how many reposts",
+        "how many followers total", "dezzme numbers", "how large is the community"
+      ],
+      "responses": [
+        "DB_STATS"
+      ]
+    },
+
+    {
+      "tag": "user_lookup",
+      "patterns": [
+        "who is", "find user", "look up user", "search for user",
+        "tell me about", "who is tyven", "who is leah", "who is dani",
+        "who is caelix", "who is armstrong", "who is chelsey", "who is karem",
+        "who is steven", "find tyven", "find leah", "find dani",
+        "profile of", "info on user", "user info", "about the user",
+        "show me", "look up", "find peumer"
+      ],
+      "responses": [
+        "DB_USER"
+      ]
+    },
+
+    {
+      "tag": "groups_list",
+      "patterns": [
+        "show me all groups", "list the pods", "what pods exist",
+        "all pods on dezzme", "what groups are there", "show pods",
+        "list groups", "dezzme pods list", "what communities exist",
+        "show all pods", "every group on dezzme", "pod list"
+      ],
+      "responses": [
+        "DB_GROUPS"
+      ]
+    },
+
+    {
+      "tag": "top_memes",
+      "patterns": [
+        "what are the most liked memes", "top memes", "best memes on dezzme",
+        "most popular memes", "most liked posts", "trending memes",
+        "top posts on dezzme", "viral memes on dezzme", "what memes are popular",
+        "show top memes", "best posts", "most liked content"
+      ],
+      "responses": [
+        "DB_TOP_MEMES"
+      ]
+    },
+
+    {
+      "tag": "trending_tags",
+      "patterns": [
+        "what are the trending tags", "popular hashtags on dezzme",
+        "top hashtags", "trending hashtags", "popular tags",
+        "what tags are used most", "most used hashtags", "tag trends"
+      ],
+      "responses": [
+        "DB_TAGS"
+      ]
+    },
+
+    {
+      "tag": "what_is_dezzme",
+      "patterns": [
+        "what is dezzme", "what is peura", "tell me about dezzme",
+        "explain dezzme", "what does dezzme do", "what kind of app is this",
+        "what is this app", "what can i do on dezzme", "describe dezzme",
+        "dezzme explained", "how does dezzme work", "what is dezzme about",
+        "dezzme overview", "give me an overview", "what is dezzme used for"
+      ],
+      "responses": [
+        "Dezzme is THE social platform built entirely around meme and internet culture! 🎭\n\nAt its deepest level, Dezzme isn't just a meme app — it's an attempt to build a digital HOME for internet culture itself.\n\n🔥 What you can do on Dezzme:\n• Upload image, video, and text memes\n• Track (follow) other users whose humor you vibe with\n• Repost memes to your feed\n• Save favourites privately in your vault\n• Join Pods (community groups)\n• Do Vibe Checks on profiles\n• Build meme Collections in folders\n• Message people you track\n• Share audio clips and sounds\n• Subscribe to creators for exclusive content\n• Remix other people's memes\n• Tag people with @mentions\n\n📱 The philosophy: Instagram is about people. TikTok is about entertainment. Dezzme is about CULTURE. Every feature exists to serve meme culture.\n\nUsers are called Peumers (from the original name Peura). Welcome to the culture! 🌐",
+        "Dezzme (codename: Peura) is the internet's first platform built SPECIFICALLY for meme culture 🎉\n\nThe founder's vision: memes are no longer just content — they're LANGUAGE. Digital body language. When you send a reaction image, you're communicating something words can't. Dezzme takes that seriously.\n\n🌟 Core features:\n🏠 Main Feed — trending image/video/text memes\n✈️ Text Feed — pure text meme ecosystem\n👥 Pods — community groups around shared humor\n🎯 Vibe Check — rate someone's profile energy\n📁 Collections — organize memes into folders\n🔁 Remix — put your spin on any meme\n🎵 Sounds — audio meme library\n💬 Messages — DM people you track\n🔔 Tracking — follow based on TASTE not fame\n\nThis is more than an app. It's the operating system for internet culture. 🔥"
+      ]
+    },
+
+    {
+      "tag": "dezzme_philosophy",
+      "patterns": [
+        "what is dezzme's vision", "dezzme philosophy", "why was dezzme made",
+        "dezzme mission", "what is the goal of dezzme", "why dezzme exists",
+        "dezzme purpose", "what makes dezzme different", "dezzme vs instagram",
+        "dezzme vs tiktok", "why not just use instagram", "why not reddit",
+        "dezzme unique", "what sets dezzme apart"
+      ],
+      "responses": [
+        "Dezzme's philosophy is profound and unique 🌐\n\nThe founder's core belief: MEMES ARE LANGUAGE.\n\nNot posts. Not content. Language.\n\nWhen you send a meme, you're saying something words can't always express. Reaction images carry emotion. Sounds carry memory. Text memes carry shared understanding.\n\nThe problem Dezzme solves:\n❌ Memes live everywhere and nowhere — TikTok, Instagram saves, WhatsApp chats, Reddit, Discord, screenshots, Downloads folders...\n❌ People spend years collecting memes with no dedicated home\n❌ The internet produces billions of memes with almost no infrastructure around them\n\nDezzme's answer:\n✅ Build a PERMANENT digital home for internet culture\n✅ Treat every meme format as a first-class citizen\n✅ Build tools that collectors love (favorites, collections, sounds)\n✅ Replace 'Follow' with 'Track' — you follow TASTE, not fame\n✅ Build community around shared humor (Pods)\n\nThe long-term vision: 'The operating system for internet culture.' 🔥\n\nNot competing with Instagram for selfies. Not competing with TikTok for entertainment. Building the DEDICATED home for the language of the internet itself.",
+        "What makes Dezzme different from everything else? 🤔\n\nInstagram → Built around people\nTikTok → Built around entertainment\nPinterest → Built around inspiration\nLinkedIn → Built around careers\nReddit → Built around discussion\n\nDezzme → Built around INTERNET CULTURE 🎭\n\nThat's the entire difference. Every single feature flows from that one idea.\n\n• 'Track' instead of 'Follow' (you track taste, not status)\n• Text Feed exists because text memes are their own culture\n• Sounds are treated as collectible culture\n• Vibe Check exists because profiles are cultural identities\n• Collections exist because meme collectors deserve organization\n• Pods exist because humor creates community\n\nDezzme asks: 'What makes you laugh?' — not 'Who are you?'\nThat's a fundamentally different question. 🧠"
+      ]
+    },
+
+    {
+      "tag": "how_to_upload",
+      "patterns": [
+        "how do i upload a meme", "how to post", "how to upload",
+        "upload meme", "post a meme", "share a meme", "how to share content",
+        "how do i post something", "upload image", "upload video",
+        "how to add a meme", "create a post", "posting on dezzme",
+        "how to upload content", "add meme", "submit meme",
+        "how do i add content", "posting memes", "publish meme"
+      ],
+      "responses": [
+        "Uploading on Dezzme is super easy! 🚀\n\nHere's how:\n1️⃣ Tap the ➕ icon in the bottom nav bar (or go to upload.php)\n2️⃣ Choose your meme TYPE:\n   🖼️ Image — JPG, PNG, GIF, WEBP\n   🎥 Video — MP4, WEBM, MOV\n   📝 Text — pure text with no image needed\n3️⃣ Pick your file (or type your text for text memes)\n4️⃣ Add a caption — make it funny! 😂\n   You can @mention users, use #hashtags for discoverability\n5️⃣ Hit UPLOAD and you're live! 🎉\n\nYour meme appears instantly in:\n✅ Your profile Memes tab\n✅ The main feed (visible to others)\n✅ The NEW badge shows for 24 hours on fresh posts\n\nPro tips:\n💡 Use #hashtags for more discoverability\n💡 @mention someone to notify them\n💡 The AI trending algorithm boosts popular memes\n💡 Remixing someone's meme gives them credit automatically",
+        "Three types of memes you can post on Dezzme! 🎭\n\n🖼️ IMAGE MEMES\n• Supported: JPG, PNG, GIF, WEBP\n• Classic reaction images, templates, screenshots\n• Shows in main feed with full image preview\n\n🎥 VIDEO MEMES\n• Supported: MP4, WEBM, MOV\n• Autoplay muted in the feed\n• Click to open full view with audio\n\n📝 TEXT MEMES\n• No image needed — pure words!\n• Shows as a text card in feeds\n• Also appears in the dedicated Text Feed (✈️ icon)\n• Perfect for hot takes, relatable thoughts, absurd humor\n\nTo post: tap ➕ → choose type → upload/type → add caption → post!\n\nThe NEW badge shows for 24 hours. Fading badge shows for 24-48 hours. After that it disappears. 🆕"
+      ]
+    },
+
+    {
+      "tag": "how_to_track",
+      "patterns": [
+        "how to follow someone", "how to track someone", "how to follow",
+        "track a user", "follow user", "how do i track", "how to follow people",
+        "tracking on dezzme", "how to get followers", "how to get trackers",
+        "follow feature", "track feature", "unfollow", "untrack",
+        "how to unfollow", "how to untrack", "stop following",
+        "tracking vs following", "what is tracking", "what does track mean"
+      ],
+      "responses": [
+        "On Dezzme, 'following' is called TRACKING! 🎯\n\nWhy 'Track' not 'Follow'?\nBecause you're not following fame — you're tracking TASTE. You track someone's humor, their meme sense, their cultural fingerprint. It's a fundamentally different relationship.\n\nHow to track someone:\n1️⃣ Visit their profile\n2️⃣ Tap the 'Track' button\n3️⃣ Done! Their memes appear in your feed 🎉\n\nSpecial cases:\n🔒 Private accounts → you send a TRACK REQUEST which they must approve\n⏳ Pending request → button shows 'Requested'\n✅ Approved → you're now tracking them!\n\nHow to UNTRACK:\n➡️ Visit their profile → tap 'Untrack'\n\nYour stats:\n👥 TRACKERS = people who track you (your audience)\n🎯 TRACKING = people you track (your taste feed)\n\nNote: Some private accounts require owner approval before you see their content! 🔒",
+        "Tracking = following on Dezzme! 😎\n\nFull breakdown:\n\nPublic accounts:\n• Go to profile → tap 'Track' → immediately tracking! ✅\n\nPrivate accounts (🔒 fully private):\n• Go to profile → tap 'R. Track' (Request Track)\n• Owner gets notified\n• If approved → you can see their content\n• If denied → you can request again\n• Pending shows as 'Requested'\n\nFrom your feed:\n• 'Track' buttons appear on meme cards in the feed\n• Tap without opening the card!\n• Works on suggested users in the feed too\n\nSee who tracks you:\n• Go to your profile → tap Trackers count\n• Or check notifications\n\nPrivate profile note:\nIf a profile is fully private AND you're not approved, you'll see the private wall with a lock icon 🔒"
+      ]
+    },
+
+    {
+      "tag": "vibe_check",
+      "patterns": [
+        "what is vibe check", "how does vibe check work", "vibe check",
+        "how to vibe check someone", "what is a vibe check on dezzme",
+        "vibe check feature", "how to vote vibe", "vibe vote",
+        "explain vibe check", "what does vibe check do", "vibe check explained",
+        "what vibes are available", "list all vibes", "vibe options",
+        "what vibes can i vote", "how to see someone's vibe", "top vibe"
+      ],
+      "responses": [
+        "Vibe Check is one of Dezzme's most original features! ✨\n\n🧠 The concept:\nInstead of just liking a profile, you INTERPRET it. You vote on someone's energy — their aura — their internet personality. The profile then displays the community's verdict.\n\nHow to Vibe Check someone:\n1️⃣ Go to their profile\n2️⃣ Tap their profile picture\n3️⃣ Select 'Vibe Check' from the popup\n4️⃣ Choose from 22 vibe options!\n\nAll 22 Vibes you can vote:\n🔥 Main character\n🌙 Mysterious\n⚡ Chaos energy\n😈 Chill but dangerous\n😌 Unbothered elite\n🚫📱 Don't text them first\n🚩 Probably toxic\n👑 Underrated legend\n🌊 Too deep for this timeline\n💫 Chronically online\n🖤 Quiet luxury\n😭 Knows they're attractive\n😇 Too innocent for this app\n🎭 Living a double life\n🧠 Overthinks everything\n🔮 Old soul\n🌈 Chaotic good\n👀 The one who got away\n😭 Looks like a problem\n🤡 Menace to society\n🌸 Soft life era\n🤫 Main character energy\n\nThe most voted vibe shows on their profile popup for everyone to see! 😂\n\nYou can only vote ONCE per profile, so make it count! 🎯",
+        "Vibe Check = the community rates your energy! 🎭\n\nIt works like a live opinion poll for your profile personality. The results show:\n• Which vibe got the most votes\n• It updates in real time as more people vote\n• Shows in the profile popup when someone taps your pic\n\nFun fact from Dezzme data:\nOn our platform right now, 'Knows they're attractive 😭' and 'Main character 🔥' and 'Quiet luxury 🖤' are among the most popular vibes!\n\nYou can vibe check ANYONE on Dezzme — public profiles, friends, creators. It's anonymous too! The person just sees their top vibe, not who voted what. 👀"
+      ]
+    },
+
+    {
+      "tag": "collections",
+      "patterns": [
+        "what are collections", "how to create collection", "how do collections work",
+        "collection feature", "how to save memes", "save to collection",
+        "add to collection", "make a collection", "private collection",
+        "public collection", "how to make collection public", "collection visibility",
+        "how to delete collection", "rename collection", "collection on dezzme",
+        "meme folders", "organize memes", "meme library"
+      ],
+      "responses": [
+        "Collections are Dezzme's personal meme library system! 📁\n\nThink of Collections as custom folders where you organize memes exactly how YOU want.\n\nHow to create a Collection:\n1️⃣ Go to your profile\n2️⃣ Tap Memes, Reposts, Favs, or Tags tab\n3️⃣ Click the 'Collections' pill button\n4️⃣ Hit '+ New Collection'\n5️⃣ Name it (e.g. 'Cardi B memes', 'Reaction images', 'Dark humor')\n6️⃣ Set visibility: PUBLIC 🌐 or PRIVATE 🔒\n7️⃣ Save!\n\nAdding memes to a Collection:\n• Every meme card has a 🗂️ folder button at the bottom right\n• Tap it → choose which collection → done!\n\nVisibility:\n🌐 PUBLIC → shows on your profile for anyone to browse\n🔒 PRIVATE → only YOU can see it\n\nManaging Collections:\n• Tap ••• on any collection → Rename, Delete, Toggle Public/Private\n• Collections show a 4-image preview grid on the folder card\n• Shows item count per folder\n\nWhy Collections are powerful:\n💡 Organize reaction images by mood\n💡 Build a personal meme archive\n💡 Public collections become part of your cultural identity\n💡 Never lose a meme again! 🔥"
+      ]
+    },
+
+    {
+      "tag": "likes_reposts_favorites",
+      "patterns": [
+        "how to like a meme", "how to repost", "how to favorite",
+        "like feature", "repost feature", "favorite feature",
+        "how does liking work", "heart meme", "bookmark meme",
+        "difference between like repost favorite", "what is repost",
+        "what is favorite", "how to interact with memes",
+        "engagement on dezzme", "react to memes", "what does like do",
+        "what does repost do", "what does favorite do", "like vs repost vs favorite"
+      ],
+      "responses": [
+        "Three ways to engage with memes on Dezzme! 🎯\n\n❤️ LIKE\n• Shows appreciation for the post\n• Creator sees their like count go up in real time\n• Your like shows in the 'Engagement' row below the card\n• Friends who track you can see that you liked something (social proof avatars!)\n• Tapping again = unlike\n\n🔁 REPOST\n• Shares the meme to YOUR reposts tab on your profile\n• Like retweeting or sharing to your feed\n• Others can see you reposted via social proof\n• Builds your 'taste' identity — what you repost = who you are\n• Shows in your Reposts tab with your profile\n\n🔖 FAVORITE\n• Saves privately to YOUR Favorites tab\n• Nobody else can see your favorites — it's YOUR vault\n• Perfect for memes you want to keep but not publicly endorse\n• Your personal meme archive\n• Can also add to Collections from favorites!\n\nHow to use them:\n• Tap any meme card to open the modal\n• Action buttons are at the bottom: ❤️ 🔁 🔖\n• Counts update INSTANTLY in real time\n• Can undo all three by tapping again\n\n💡 The TRIFECTA: Like + Repost + Favorite a meme if it's a 10/10! 🔥"
+      ]
+    },
+
+    {
+      "tag": "messages",
+      "patterns": [
+        "how to message someone", "how to send a message", "direct message",
+        "dm feature", "messages on dezzme", "how to chat", "send dm",
+        "how to start a conversation", "messaging", "message a user",
+        "how to reply to messages", "can i message anyone", "chat feature",
+        "how to delete message", "message attachment", "send photo in message",
+        "audio message", "voice message", "file in messages"
+      ],
+      "responses": [
+        "Messaging on Dezzme — the full breakdown! 💬\n\nHow to message someone:\n1️⃣ Go to their profile\n2️⃣ Tap the 'Message' button\n3️⃣ Start typing!\n\n⚠️ Important rule: You MUST be tracking someone to message them. No random DMs from strangers!\n\nWhat you can send:\n💬 Text messages — regular chat\n📸 Photos — tap the attachment icon\n🎥 Videos — attach video files\n🎵 Audio — share sound clips\n📎 Files — general file attachments\n\nMessage features:\n✅ SEEN indicator — shows when they've read it\n🗑️ DELETE — tap your message → delete (shows as '[deleted]')\n🔴 Unread dot — red dot on nav icon for unread messages\n🔢 Badge count — shows how many unread across all accounts\n\nMessage inbox features:\n• Filter: Unread | Most Chatted | Dry Chat (😂 no recent reply)\n• See all conversations in your Messages tab on your profile\n• Linked accounts — unread count shows per account!\n\nPrivacy:\n🔒 Only people you track can message you (by default)\n⚙️ Can change messaging permissions in Settings\n\nCheck your Messages tab on your profile page! 📩"
+      ]
+    },
+
+    {
+      "tag": "remixes",
+      "patterns": [
+        "what is a remix", "how to remix a meme", "remix feature",
+        "remix explained", "how to remix", "repost vs remix",
+        "what does remix mean on dezzme", "remix vs repost", "how do remixes work",
+        "can i remix someone's meme", "remix culture on dezzme",
+        "original vs remix", "see original meme"
+      ],
+      "responses": [
+        "Remixing is one of Dezzme's most creative features! 🎨\n\nWhat is a Remix?\nA remix is when you take someone else's meme and add YOUR spin to it. It's like responding to a meme with your own version — creative dialogue through memes.\n\nHow to Remix:\n1️⃣ Find any meme on a profile\n2️⃣ Tap the ••• kebab menu on the card\n3️⃣ Select 'Remix'\n4️⃣ Add your own caption\n5️⃣ Upload!\n\nWhat happens:\n• Your remix appears on YOUR profile with a ↩️ icon\n• Original creator is credited automatically\n• Caption shows who you remixed from\n• Viewers can tap 'See Original' to compare!\n\nRemix vs Repost:\n🔁 Repost = share exactly as is (no changes)\n🎭 Remix = add your own creative twist + caption\n\nRemix culture IS meme culture:\n• The best memes evolve through remixes\n• A meme becomes a template when people remix it\n• Remix chains show how culture spreads\n• On Dezzme, this is built INTO the platform\n\nYour remixes show in your REPOSTS tab on your profile. The ↩️ icon marks them as remixes. 🔥"
+      ]
+    },
+
+    {
+      "tag": "pods_groups",
+      "patterns": [
+        "what are pods", "how to join a pod", "pods on dezzme",
+        "group feature", "how to create a group", "how to create a pod",
+        "community feature", "join group", "pod explained",
+        "what is a pod", "group chat", "how to find pods",
+        "what groups exist", "how many pods", "adult pods",
+        "18 plus pods", "how to make a pod", "pod vs group"
+      ],
+      "responses": [
+        "Pods are Dezzme's community groups! 👥\n\n🧠 Philosophy:\nPods aren't giant faceless communities. They're focused, smaller spaces built around SHARED HUMOR. Pods create belonging through comedy.\n\nWhat is a Pod?\n• A dedicated group page where members share memes together\n• Has its own feed, cover image, title, and description\n• Can have multiple admins\n• Can be OPEN (join freely) or ADULT-ONLY (18+)\n\nHow to find Pods:\n🔍 Visit anyone's profile → look for their Pods section\n🔍 Or ask a friend to invite you\n\nHow to create a Pod:\n1️⃣ Go to community.php\n2️⃣ Tap 'Create Pod'\n3️⃣ Add title, description, cover image\n4️⃣ Set age restriction (normal or 18+)\n5️⃣ Launch it!\n\nPod features:\n✅ Post memes to pod feed\n✅ React to pod posts\n✅ Admins can manage members\n✅ Adult-only pods for 18+ content\n✅ Custom guidelines per pod\n\nActive Pods on Dezzme right now:\n📌 'Funny memes' — sharing hilarious content\n📌 'Cardi Fan page' — Cardi B meme dedication\n📌 'Bad Girls Club' — baddies only 💅\n\nWant the full live list? Ask me 'show me all pods'! 🔥",
+        "Pods = groups + community on Dezzme! 🌐\n\nKey facts:\n• Pods have their own dedicated meme feeds\n• Members post directly TO the pod\n• Admins can appoint other admins\n• Adult pods require 18+ verification concept\n• Each pod can have custom community guidelines\n• You can be in multiple pods simultaneously\n\nWant to know how many pods exist right now? Ask me 'how many pods are on dezzme' and I'll give you the live count! 📊"
+      ]
+    },
+
+    {
+      "tag": "profile_setup",
+      "patterns": [
+        "how to set up profile", "how to edit profile", "change profile picture",
+        "update bio", "edit bio", "change username", "profile settings",
+        "how to update profile", "profile picture", "change profile pic",
+        "how to add pronouns", "how to add bio", "profile customization",
+        "customize profile", "other accounts on profile",
+        "how to write a bio", "activity vibe", "what is activity vibe",
+        "user type setting", "what is user type"
+      ],
+      "responses": [
+        "Your Dezzme profile is your CULTURAL FINGERPRINT! 🎨\n\nHere's everything you can customise:\n\n📸 PROFILE PICTURE\n• Tap 'Edit Picture' on your profile\n• Supports JPG, PNG, GIF\n• Square crop for display\n\n📝 BIO\n• Up to 600 characters!\n• Supports clickable email links (type email@example.com)\n• Supports URLs (type https://...)\n• Multiple lines supported\n• Shows on your profile card\n\n🏷️ PRONOUNS\n• He/Him, She/Her, They/Them, or custom\n• Shows under your username\n\n⏰ ACTIVITY VIBE\n• Options: Early morning (5-9 AM), Afternoon, Night, Late night, Flexible\n• Lets people know when you're most active\n• Shows on your profile\n\n👤 USER TYPE\n• Dezzmer, Peumer, Creator, or custom\n• How you identify on the platform\n• Shows as a badge\n\n🔗 OTHER ACCOUNTS\n• Link your other social handles\n• Shows on your profile for people to find you\n\n🔒 NICKNAME\n• Optional display name different from username\n\nGo to: Profile → ⚙️ Settings → Edit Profile to customise everything! 💪"
+      ]
+    },
+
+    {
+      "tag": "account_settings",
+      "patterns": [
+        "where are settings", "how to access settings", "account settings",
+        "privacy settings", "notification settings", "how to change password",
+        "how to change email", "settings page", "app settings",
+        "how to make account private", "private account", "dark mode",
+        "how to change settings", "dezzme settings",
+        "how to hide online status", "message privacy", "notification options"
+      ],
+      "responses": [
+        "Everything in Dezzme Settings! ⚙️\n\nHow to access:\n➡️ Go to your profile → tap the ☰ kebab menu → Settings\n\n🔒 PRIVACY SETTINGS\n• Make account FULLY PRIVATE — only approved trackers see content\n• Hide/show profile picture from non-trackers\n• Show/hide online status\n• Allow/restrict who can message you\n\n🔔 NOTIFICATION SETTINGS\n• Toggle: Like notifications\n• Toggle: Follow/Track notifications\n• Toggle: Message notifications\n• Toggle: Tag notifications\n\n🌙 DARK MODE\n• Dezzme is dark by default! (Ink-dark theme with red accents)\n• Toggle in settings if available\n\n📸 PROFILE SETTINGS\n• Bio (up to 600 chars)\n• Pronouns\n• Activity vibe\n• User type\n• Other accounts/social links\n\n🎥 CONTENT SETTINGS\n• Autoplay videos: on/off\n• Reduce animations: on/off\n• Allow anonymous posts: on/off\n\n🔗 LINKED ACCOUNTS\n• Add up to 5 accounts\n• Switch between them from profile dropdown\n\nAll changes save instantly! 🎛️"
+      ]
+    },
+
+    {
+      "tag": "linked_accounts",
+      "patterns": [
+        "linked accounts", "how to link accounts", "multiple accounts",
+        "switch accounts", "add another account", "account switcher",
+        "how to add account", "connect accounts", "how many accounts can i have",
+        "dezzme multiple accounts", "switch between accounts",
+        "add second account", "manage multiple accounts"
+      ],
+      "responses": [
+        "Multiple accounts on Dezzme! 🔄\n\nDezzme supports up to 5 linked accounts that you can switch between instantly!\n\nHow to link an account:\n1️⃣ Go to your profile\n2️⃣ Tap your username at the top\n3️⃣ Tap '+ Add Account'\n4️⃣ Log in with the other account's email and password\n5️⃣ You're now linked! Switch anytime from the same dropdown.\n\nLinked account features:\n🔴 Unread message indicators per account\n🔄 Instant switch — no logout needed\n✕ Remove a linked account from the dropdown\n📊 Each account has its own feed, profile, and content\n\nUse cases:\n💼 Personal account + Creator account\n🎭 Meme account + Main account\n👥 Managing brand pages\n\nNote: Linked accounts see each other's unread message counts in the nav badge! 📨"
+      ]
+    },
+
+    {
+      "tag": "subscriptions",
+      "patterns": [
+        "what are subscriptions", "how to subscribe", "subscription feature",
+        "how to create subscription", "subscription tiers", "paid content",
+        "exclusive content", "how to monetize", "creator subscriptions",
+        "how to subscribe to someone", "subscription on dezzme",
+        "how to make money", "creator economy", "paid tiers",
+        "exclusive memes", "subscription price"
+      ],
+      "responses": [
+        "Subscriptions — Dezzme's built-in creator economy! 💰\n\nWHAT IT IS:\nCreators can lock exclusive content behind paid subscription tiers. Fans subscribe and get access to content nobody else can see.\n\nAS A CREATOR:\n✅ Create multiple tier levels (e.g. Standard ₦250, Premium ₦500, VIP ₦900)\n✅ Name each tier whatever you want\n✅ Upload exclusive memes only subscribers can see\n✅ Review payment receipts and approve/reject manually\n✅ Full control over who gets access\n\nAS A SUBSCRIBER:\n1️⃣ Visit someone's profile → find Subscriptions (in ••• menu)\n2️⃣ Choose a tier\n3️⃣ Make payment via your method\n4️⃣ Upload your payment receipt/proof\n5️⃣ Wait for creator approval\n6️⃣ ✅ Approved → exclusive content unlocked!\n\nWhat exclusive content can be:\n🖼️ Exclusive memes (images, videos, text)\n📸 Behind the scenes\n🔞 Adult-only content (if verified 18+)\n\nPricing is set by creators — they decide what their exclusive content is worth!\n\nFun fact: Creator Caelix on Dezzme has 3 subscription tiers ranging from ₦250 to ₦900! 🎉"
+      ]
+    },
+
+    {
+      "tag": "sounds_audio",
+      "patterns": [
+        "what are sounds", "audio feature", "how to upload sound",
+        "sounds on dezzme", "music on dezzme", "how to add sounds",
+        "saved sounds", "sound library", "audio posts",
+        "audio memes", "how to save sounds", "sound folders",
+        "organize sounds", "audio collections"
+      ],
+      "responses": [
+        "Sounds — Dezzme's audio meme library! 🎵\n\n🧠 The philosophy:\nAudio IS culture. Catchphrases, reaction sounds, viral audio clips — they're as much a meme as any image. Dezzme treats audio as collectible culture.\n\nHow Sounds work:\n📤 UPLOAD your own audio:\n• Supported formats: MP3, AAC, OGG, WAV\n• Give it a title\n• It appears on your profile's Sounds section\n\n🔖 SAVE other people's sounds:\n• Tap the save icon on any sound\n• Goes to your personal saved sounds library\n\n📂 ORGANIZE with Sound Folders:\n• Create named folders for your audio collection\n• Toggle Public/Private per folder\n• Example: 'Chill Vibes', 'Reaction clips', 'Funny sounds'\n\n🔍 FIND sounds:\n• Profile → ••• menu → Your Sounds\n• Or visit anyone's profile → their audio section\n\nWhy this matters:\nMost platforms ignore audio memes completely. Dezzme gives them their own ecosystem — upload, save, organize, and share audio as a first-class meme format.\n\nFun fact: Dezzme users can build entire SOUND IDENTITIES — their saved audio collection becomes part of who they are! 🎤"
+      ]
+    },
+
+    {
+      "tag": "new_badge",
+      "patterns": [
+        "what is the new badge", "new badge explained", "what does new mean on memes",
+        "why does it say new", "new label on memes", "new tag on post",
+        "what is the new tag", "new badge on dezzme", "is my post new",
+        "how long does new badge last", "fading badge", "new post indicator"
+      ],
+      "responses": [
+        "The NEW badge system on Dezzme! 🆕\n\nEvery fresh post gets time-based badges:\n\n🔴 NEW badge (bright red)\n• Post is less than 24 hours old\n• Shows clearly on the meme card\n• Signals: this is HOT off the press!\n\n🌤️ Fading badge\n• Post is between 24-48 hours old\n• Badge is dimmer/fading\n• Signals: still fresh but settling\n\n💨 No badge\n• Post is older than 48 hours\n• Badge disappears completely\n\nWhere NEW badges show:\n• Main feed meme cards\n• Profile meme grids\n• Repost tabs\n• Anywhere meme cards appear!\n\nAlso works on PROFILE FOLLOWING BAR:\n• If someone you track posted in the last 24 hours, their profile picture in the follow bar gets a special 🔴 image icon badge!\n• Makes it easy to see who posted something new without scrolling the feed\n\nThe badge is Dezzme's way of surfacing fresh content organically. 🚀"
+      ]
+    },
+
+    {
+      "tag": "discover_search",
+      "patterns": [
+        "how to search", "discover page", "how to find memes",
+        "search feature", "how to find people", "search for users",
+        "how to discover content", "explore page", "find trending memes",
+        "search on dezzme", "how to find someone", "search users",
+        "can i search hashtags", "search by tag", "find content"
+      ],
+      "responses": [
+        "The Search & Discover page on Dezzme! 🔍\n\nAccess it: Tap the 🔍 search icon in the nav bar\n\nWHAT YOU CAN DO:\n\n👤 Search Users by username:\n• Type any username in the search bar\n• Lands directly on their profile\n• Works even for private accounts (shows their wall)\n\n🔥 Browse the Discover grid:\n• Masonry layout of trending memes\n• Content from across the whole platform\n• Mix of images, videos, text posts\n• Trending posts get bigger tile sizes\n\n🏷️ Tag navigation:\n• Clickable #hashtags in captions across the app\n• Filter the main feed by clicking tag pills at the top\n• AI personalises which tags show first based on your interests!\n\n📌 Featured content:\n• Sponsored posts appear naturally in the grid\n• Labeled clearly with AD badge\n\n@Mentions:\n• Tap any @username in a caption → goes to their profile\n• Works in the feed, modals, and messages\n\nPro tip: Use the TAG FILTER BAR at the top of the home feed to browse by:\n#funny, #gaming, #love, #school, #relatable, and 50+ more! 🎯"
+      ]
+    },
+
+    {
+      "tag": "tags_mentions",
+      "patterns": [
+        "how to tag someone", "how to mention someone", "tags on dezzme",
+        "at mention", "how to use hashtags", "hashtags on dezzme",
+        "tagged posts", "how to see tagged posts", "mention feature",
+        "tag tab on profile", "how to find tagged posts", "hashtag filter"
+      ],
+      "responses": [
+        "@Mentions and #hashtags on Dezzme! 📌\n\n@MENTIONS (Tagging people):\n• When writing a caption, type @username\n• Auto-links to their profile\n• They can see it in their TAGS tab\n• Creates clickable links in feed, modals, and messages\n• Example: '@Leah this is so you 💀'\n\n#HASHTAGS:\n• Type #word in any caption\n• Makes content discoverable\n• Tag pills at top of home feed filter by hashtag\n• AI personalisation learns which tags you interact with\n• The more you use a tag, the more similar content appears\n\nPopular Dezzme hashtags:\n#funny #memes #relatable #love #school #gaming\n#anime #music #football #sports #brainrot\n#mood #same #pain #iconic and 50+ more!\n\nTAGS TAB on profiles:\n• Every profile has a 'Tags' tab\n• Shows all memes where that person was @mentioned\n• Great way to see what your friends tag you in! 😂\n\nPro tip: Tag someone in a meme that IS them — it shows in their Tags tab and notifies them! 🔔"
+      ]
+    },
+
+    {
+      "tag": "sponsorships",
+      "patterns": [
+        "what are sponsorships", "how to advertise on dezzme",
+        "sponsored content", "ads on dezzme", "brand deals",
+        "how to sponsor", "ad feature", "dezzme advertising",
+        "how to promote on dezzme", "sponsorship tiers",
+        "standard premium exclusive", "ad pricing"
+      ],
+      "responses": [
+        "Sponsorships on Dezzme — the advertising system! 📢\n\nDezzme allows brands to run sponsored content that appears naturally in the meme feed and the card modal.\n\nSponsorship Tiers:\n💼 STANDARD — ₦49 — Basic visibility in feeds\n⭐ PREMIUM — ₦149 — Higher placement and more impressions\n👑 EXCLUSIVE VIP — ₦499 — Maximum visibility, featured placement\n\nWhat a sponsor gets:\n• Brand logo + name displayed\n• Media post (image or video) in the feed\n• Caption text\n• Clickable 'Visit Brand' button linking to their URL\n• 'AD' badge shown transparently\n• Appears in the Card Caption Modal (CCM) between posts!\n\nHow to become a sponsor:\n1️⃣ Go to sponsorships.php\n2️⃣ Fill in brand name, upload logo and media\n3️⃣ Write your caption\n4️⃣ Add your link and contact info\n5️⃣ Choose your tier\n6️⃣ Submit — reviewed by Dezzme team\n7️⃣ ✅ Approved → goes live in the feed!\n\nCurrent approved sponsors on Dezzme include brands like Neural, JetBrains, and more! 🎯\n\nNote: Dezzme's ad model is respectful — ads are clearly labeled and never intrusive. Culture first, ads second. 🙏"
+      ]
+    },
+
+    {
+      "tag": "online_status",
+      "patterns": [
+        "what does online mean", "active status", "online indicator",
+        "how to see if someone is online", "recently active", "live status",
+        "online badge", "active badge", "how does online status work",
+        "green dot", "r.active meaning", "live badge", "what does live mean",
+        "active indicator on profile", "how to hide online status"
+      ],
+      "responses": [
+        "Activity Status indicators on Dezzme! 🟢\n\nThree levels of activity shown on profiles:\n\n🔴 LIVE\n• Uploaded a meme in the LAST 2 MINUTES\n• The most active indicator\n• Shows they're literally on the app right now posting\n\n🟢 Active\n• Was active within the LAST 5 MINUTES\n• Currently browsing or interacting\n\n🟣 R.Active (Recently Active)\n• Was active within the LAST HOUR\n• Stepped away but was there recently\n\n⚫ No badge\n• Inactive for more than 1 hour\n• No indicator shown\n\nWhere they show:\n• ON other people's profiles when you visit them\n• NOT on your own profile (you can't see your own)\n• In the profile picture area at the top\n\nPrivacy control:\n• ⚙️ Settings → Privacy → 'Show online status': ON/OFF\n• Turn it off if you want to be invisible! 👻\n• When hidden, others won't see your activity level\n\nFun fact: When someone goes LIVE (uploads a meme), their story ring in your follow bar also gets a 🖼️ red icon badge! So you never miss fresh content from people you track. 🔔"
+      ]
+    },
+
+    {
+      "tag": "profile_views",
+      "patterns": [
+        "who viewed my profile", "profile views", "can i see who viewed me",
+        "profile view feature", "view count", "who visited my profile",
+        "how to see profile viewers", "profile visitors",
+        "how does profile view work", "view tracking"
+      ],
+      "responses": [
+        "Profile Views on Dezzme! 👁️\n\nYes — Dezzme tracks who visits your profile!\n\nHow it works:\n• Every time someone visits your profile page, a view is logged\n• 60-MINUTE COOLDOWN per person — same person visiting multiple times in an hour only counts as one view\n• Prevents spam/inflation\n• Views are tracked even if the visitor doesn't like or interact\n\nSeeing your views:\n• Go to your profile\n• Check the notification bell 🔔\n• You'll see a count of new/unseen profile views\n• These update in real time!\n\nWhat you can tell:\n• HOW MANY people viewed (count)\n• WHEN they viewed (timestamp system)\n• But NOT necessarily WHO specifically in all cases\n\nWhy this matters:\nProfile views show your REACH — how many people are curious about you even if they don't interact. It's a metric of interest! 📊\n\nFun fact: Dezzme has tracked over 760+ profile view events across users so far! The platform is clearly generating curiosity. 👀"
+      ]
+    },
+
+    {
+      "tag": "block_unblock",
+      "patterns": [
+        "how to block someone", "how to unblock", "block user",
+        "unblock user", "blocking on dezzme", "can i block people",
+        "block feature", "someone blocked me", "i got blocked",
+        "how does blocking work", "what happens when you block someone",
+        "mutual blocking", "can blocked users see me"
+      ],
+      "responses": [
+        "Blocking on Dezzme — complete guide! 🚫\n\nHow to BLOCK:\n1️⃣ Go to their profile\n2️⃣ Tap the ••• menu\n3️⃣ Tap 'Block User'\n4️⃣ Confirm\n5️⃣ Done — they're blocked!\n\nAlternatively:\n• On meme cards → ••• kebab menu → 'Block User'\n\nWhat blocking does:\n🚫 They can't see your memes or profile content\n🚫 You won't see their content in feeds\n🚫 Messaging becomes unavailable between you\n🚫 They see a 'You've been blocked' wall if they visit your profile\n🚫 Existing follow relationship is removed automatically\n🚫 Your content disappears from their feed\n\nWhat it DOESN'T do:\n• They can still search for your username\n• They still see your profile WALL (but not content)\n\nHow to UNBLOCK:\n➡️ Visit their profile → tap 'Unblock' button\n\nIf YOU blocked THEM:\n• Your profile shows 'You have blocked [username]'\n• Message: 'Unblock them from their profile to view their content again'\n\nIf THEY blocked YOU:\n• You see the blocked wall with a lock icon\n\nBlocking is clean and mutual — both sides see the effects! 💪"
+      ]
+    },
+
+    {
+      "tag": "report_user",
+      "patterns": [
+        "how to report someone", "report a user", "report feature",
+        "how to report a meme", "reporting on dezzme", "report abuse",
+        "someone is being mean", "harassment on dezzme", "report bad content",
+        "how do i report", "flag user", "flag content",
+        "what happens after reporting", "report reasons"
+      ],
+      "responses": [
+        "Reporting on Dezzme — keeping it safe! 🛡️\n\nHow to REPORT a USER:\n1️⃣ Go to their profile\n2️⃣ Tap the ••• kebab menu\n3️⃣ Tap 'Report'\n4️⃣ Confirm → report sent!\n\nHow to REPORT a MEME:\n1️⃣ Find the meme in the feed\n2️⃣ Tap the ••• menu on the meme card\n3️⃣ Tap 'Report'\n4️⃣ Choose a reason:\n   • Spam or misleading\n   • Hate speech or discrimination\n   • Nudity or sexual content\n   • Violence or harmful content\n   • Harassment or bullying\n   • Other\n5️⃣ Submit!\n\nWhat happens after:\n• Dezzme team reviews the report\n• Action taken for genuine violations\n• Repeat violators can be suspended\n\nImportant:\n⚡ For IMMEDIATE protection → BLOCK first, then report\n🛡️ Blocking removes them from your experience right away\n📋 Reports help protect the whole community\n\nDezzme's content rules:\n✅ Humor, memes, creative expression — YES\n❌ Hate speech, harassment, illegal content — NO\n❌ Spam, impersonation, bullying — NO\n\nLet's keep Dezzme a fun and safe space for everyone! 💙"
+      ]
+    },
+
+    {
+      "tag": "screen_time_break",
+      "patterns": [
+        "what is the break overlay", "screen time break", "break code",
+        "code to return", "1212 code", "what is the time limit",
+        "screen time feature", "break feature", "how to skip break",
+        "break screen on dezzme", "dezzme wellness feature",
+        "how long can i scroll", "break timer"
+      ],
+      "responses": [
+        "Screen Time Break — Dezzme's wellness feature! 🪽\n\nWhat it is:\nAfter 1 hour of continuous scrolling, Dezzme shows a BREAK OVERLAY screen. It's a gentle nudge to step away, hydrate, stretch, and come back refreshed.\n\nThe overlay shows:\n• 🪽 Angel emoji (you're an angel for taking care of yourself!)\n• 'Time to Stretch and Take a Break'\n• A 4-digit code you need to enter to return\n\nThe code is: 1 2 1 2\n\nHow to return:\n1️⃣ Type 1212 in the input field\n2️⃣ Tap 'Return to Feed'\n3️⃣ Timer resets — you get another hour!\n\nWrong code?\n• Input shakes ← → with a red border\n• Just try again!\n\nMotivation shown:\n'Stay positive and keep moving forward — you got this 💪'\n\nWhy Dezzme built this:\nMeme platforms can be addictive. Dezzme GENUINELY cares about your wellbeing. This feature is about being honest that scrolling endlessly isn't healthy — the app would rather you come back rested than burn out.\n\nIt's a small feature with a big heart. 💙"
+      ]
+    },
+
+    {
+      "tag": "download_memes",
+      "patterns": [
+        "how to download a meme", "download meme", "save meme",
+        "how to save a meme to phone", "download feature",
+        "can i download memes", "save image", "download image from dezzme",
+        "save to phone", "download to device"
+      ],
+      "responses": [
+        "Downloading memes on Dezzme! 📥\n\nEvery meme on Dezzme is downloadable!\n\nHow to download:\n1️⃣ Find any meme on a profile or feed\n2️⃣ Look for the ⬇️ download icon on the meme card\n   (it's in the icon bar below the image)\n3️⃣ Tap it!\n4️⃣ Your browser/device prompts a download\n5️⃣ File saves to your device! ✅\n\nWhat you can download:\n🖼️ Image memes → JPG, PNG, GIF, WEBP files\n🎥 Video memes → MP4, WEBM, MOV files\n📝 Text memes → Not downloadable as files (text only)\n\nAlternatively via ••• kebab menu:\n• Open meme card → ••• menu → 'Download'\n• Same result!\n\nDezzme's stance:\nMemes are culture, and culture wants to be shared. Downloading and sharing memes is part of how culture spreads — it's built INTO the platform! 🔥\n\nNote: The download goes through download.php which logs the activity for the creator's stats."
+      ]
+    },
+
+    {
+      "tag": "text_feed",
+      "patterns": [
+        "what is the text feed", "text feed explained", "what is the send icon",
+        "text feed vs main feed", "where do text memes go", "text only posts",
+        "text feed feature", "how to find text memes", "text posts only",
+        "plane icon in nav", "send icon"
+      ],
+      "responses": [
+        "The Text Feed — Dezzme's dedicated text culture space! ✈️\n\nWhat it is:\nA separate feed showing ONLY text-based meme posts. No images, no videos — pure words.\n\nWhy it exists:\nText memes have a different energy. They're:\n• More thoughtful\n• Often more absurd and surreal\n• Great for hot takes and relatable moments\n• Reading-focused rather than viewing\n\nThey DESERVE their own dedicated ecosystem!\n\nHow to access:\n• Tap the ✈️ (send plane) icon in the nav bar\n• Or go to text_feed.php directly\n\nWhat appears there:\nAny meme uploaded with type = 'Text'\nThey show as text cards with the caption in full\n\nText meme examples from Dezzme users:\n💬 'I hate this school lol'\n💬 'Mentally rn, I'm the chicken from Moana'\n💬 'The World when is my turn to be an adult'\n💬 'Im literally a Baddie if you dont agree boohoo'\n💬 'if you see a toilet in your dream, don't use it'\n\nText memes also appear in the MAIN feed — the Text Feed is an ADDITIONAL home for them.\n\nPure comedy. Pure relatability. Zero pixels required. 😂"
+      ]
+    },
+
+    {
+      "tag": "modal_system",
+      "patterns": [
+        "what is the modal", "how does the modal work", "meme modal",
+        "clicking a meme", "swipe between memes", "scroll through memes",
+        "card caption modal", "what happens when i click a meme",
+        "full screen meme view", "meme viewer", "immersive mode"
+      ],
+      "responses": [
+        "The Modal System — one of Dezzme's most important inventions! 🎭\n\nThe PROBLEM with other platforms:\nOpen meme → close → scroll → open → close → scroll...\nThat friction destroys the viewing experience.\n\nDezzme's SOLUTION:\nThe Card Caption Modal (CCM) — a full immersive viewer.\n\nWhat happens when you tap a meme:\n• A smooth modal slides open\n• Shows the meme in full quality\n• Shows the creator's profile picture + username\n• Shows the timestamp\n• Shows the full caption with clickable @mentions\n• Action buttons at bottom: ❤️ Like | 🔁 Repost | 🔖 Favorite\n• 'Close' button to exit\n\nThe KEY feature — swipe through posts:\n📱 Mobile: SWIPE UP/DOWN to go to next/previous meme\n🖱️ Desktop: SCROLL WHEEL to navigate\n⬆️⬇️ Arrow buttons on side to navigate\n⌨️ Keyboard Arrow keys also work!\n\nBetween memes in the modal, you also see:\n• AD cards (sponsored content)\n• Suggested Peumers (discover new people)\n\nThis means you can consume HUNDREDS of memes without ever leaving the modal — it's designed for flow state! 🌊\n\nThe result: dramatically less friction = dramatically more enjoyment."
+      ]
+    },
+
+    {
+      "tag": "what_is_meme",
+      "patterns": [
+        "what is a meme", "define meme", "meme definition",
+        "what is internet meme", "where did memes come from",
+        "history of memes", "meme origin", "who invented memes",
+        "why are memes funny", "meme explained", "meme culture explained",
+        "how did memes start", "first internet meme"
+      ],
+      "responses": [
+        "The complete guide to what a MEME actually is! 🧠\n\n📖 DEFINITION:\nThe word 'meme' was coined by biologist Richard Dawkins in his 1976 book 'The Selfish Gene'. He used it to describe a unit of cultural information that spreads from person to person — like a cultural gene.\n\nOn the internet, a meme became:\nA piece of humorous or relatable content that spreads rapidly across the web, often remixed, modified, and adapted by thousands of people.\n\n📅 HISTORY OF INTERNET MEMES:\n\n🔹 1996 — 'Dancing Baby' (Baby Cha-Cha): One of the first viral internet clips\n🔹 1999 — 'All Your Base' text meme from a Japanese game\n🔹 2001 — 'Hamster Dance' — viral audio + animation\n🔹 2005 — LOLcats / 'I Can Has Cheezburger' — image macros explode\n🔹 2007 — Rickrolling — clicking links that lead to Rick Astley's Never Gonna Give You Up\n🔹 2009 — Rage Comics — stick figure comics expressing emotions\n🔹 2010 — Troll Face / 'Challenge Accepted' / Advice Animals\n🔹 2011 — Nyan Cat, Planking, Rebecca Black's Friday\n🔹 2012 — Gangnam Style, YOLO, Honey Badger Don't Care\n🔹 2013 — Doge ('much wow such meme'), Harlem Shake\n🔹 2014 — Ice Bucket Challenge, 'But That's None Of My Business'\n🔹 2015 — Dress Colour debate (Blue/Black or White/Gold), Whip/Nae Nae\n🔹 2016 — Harambe, Salt Bae, Pen Pineapple Apple Pen, Arthur's Fist\n🔹 2017 — 'This Is Fine' dog, Distracted Boyfriend, Blinking White Guy\n🔹 2018 — 'Is This A Pigeon?', Moth Lamp, Two Buttons, Drake Pointing\n🔹 2019 — Baby Yoda (Grogu), 'OK Boomer', Area 51 raid\n🔹 2020 — Pandemic memes, Bernie Sanders mittens, WAP\n🔹 2021 — NPC memes, Grimace Shake, 'Nobody Asked'\n🔹 2022 — 'Girl Dinner', AI memes, 'It's Giving'\n🔹 2023 — 'Rizz', 'Slay', AI-generated meme formats\n🔹 2024-2025 — Brainrot, Italian Brainrot (Bombardino Coccodrillo), Sigma memes, 'Delulu'\n\nMemes are now: communication, emotion, identity, memory, social currency. That's why Dezzme exists. 🔥",
+        "What makes a GREAT meme? 🏆\n\nThe science of viral memes:\n\n1️⃣ RELATABILITY\n'omg that's literally me' = VIRAL\nThe wider the audience who identifies with it, the faster it spreads.\n\n2️⃣ TIMING\nA meme referencing a current event spreads faster than a timeless one. That's why 'seasonal' memes exist.\n\n3️⃣ ADAPTABILITY (Memetic fitness)\nThe best memes become TEMPLATES. Distracted Boyfriend works for hundreds of situations. Drake Pointing works for any comparison.\n\n4️⃣ SIMPLICITY\nGreat memes communicate in seconds. Complicated = doesn't spread.\n\n5️⃣ EMOTIONAL RESONANCE\nFunny, sad, angry, surprised — the emotion hits fast and hard.\n\n6️⃣ SHARED CONTEXT\nIn-group humor ('you had to be there') creates community around the meme.\n\nMeme formats that always work:\n• Before/After comparisons\n• 'Me when...' scenarios\n• Expectation vs Reality\n• Character A vs Character B\n• Increasing absurdity (escalation)\n• Breaking the 4th wall\n\nOn Dezzme, you can see all of this in action in the live feed! 🎯"
+      ]
+    },
+
+    {
+      "tag": "meme_types",
+      "patterns": [
+        "types of memes", "meme formats", "what is a reaction meme",
+        "what is a template meme", "what is a format meme", "image macro",
+        "what is a dank meme", "what is brainrot", "what is a npc meme",
+        "what is a sigma meme", "what is a ratio", "what does ratio mean",
+        "based meme", "cringe meme", "mid meme", "w meme", "l meme"
+      ],
+      "responses": [
+        "Complete guide to MEME TYPES and FORMATS! 📚\n\n🖼️ IMAGE MACROS\nA photo with text overlaid at top and bottom\nExamples: Advice Animals, Drake Pointing, Expanding Brain\nDizzying variety — the foundation of image meme culture\n\n😂 REACTION IMAGES/GIFS\nImages/clips used to express emotions in response to something\nExamples: Michael Jordan crying, Blinking white guy, 'This is fine' dog\nUsed: in replies, comments, DMs\n\n📝 TEXT MEMES\nPure text — no image\nExamples: Copypastas, Shitposts, Hot takes, Relatable posts\nDezzme has a dedicated Text Feed for these!\n\n🎥 VIDEO MEMES\nViral video clips, edits, transitions\nExamples: 'X has entered the chat', screen recordings with commentary\n\n📋 TEMPLATES\nReusable meme formats waiting to be filled\nExamples: 'Is this a butterfly?', 'Two buttons', 'Gru's plan'\nThe best templates outlive their original context\n\n🧠 MODERN SLANG IN MEMES:\n\n🔥 BRAINROT — Content so absurd/repetitive it 'rots your brain'\nExamples: Italian Brainrot, Skibidi Toilet, Gyatt content\n\n😤 SIGMA — Independent, unbothered, 'lone wolf' energy\n'Sigma male grindset' — either genuine or ironic\n\n🤖 NPC — Person acting like a background character (no personality/originality)\n'You're such an NPC' = you have no individual thought\n\n📊 RATIO — When a reply gets MORE likes than the original post\n'Ratio + L + no cap' is a classic internet dunk\n\n🙄 MID — Mediocre. Neither good nor bad. Average.\n'That movie was mid' = thoroughly underwhelming\n\n✅ BASED — Holding an opinion without caring what others think\n'That's based' = admirably confident/contrarian\n\n😬 CRINGE — Embarrassingly awkward or try-hard\n'That's cringe' = secondhand embarrassment\n\n🏆 W — Win. Success. The opposite of L.\n'That's a W' = that was great!\n\n❌ L — Loss. Failure. Take the L.\n'Take the L' = accept your defeat\n\n🤷 DELULU — Delusional, in a lighthearted way\n'The delulu is the solulu' — staying delusional as a coping mechanism\n\n💅 RIZZ — Natural charisma, especially romantic\n'He has rizz' = effortlessly attractive personality\n\nAll of these live and thrive on Dezzme! 🎭"
+      ]
+    },
+
+    {
+      "tag": "famous_memes_wiki",
+      "patterns": [
+        "tell me about distracted boyfriend meme", "what is the drake meme",
+        "explain the dog this is fine meme", "what is doge", "much wow",
+        "tell me about pepe the frog", "what is harambe", "rickroll explained",
+        "what is nyan cat", "what is the trollface", "what is the butterfly meme",
+        "is this a pigeon", "expanding brain meme", "blinking white guy",
+        "what is the michael scott no meme", "arthur fist meme",
+        "bernie sanders mittens", "salt bae", "moth lamp meme",
+        "tell me about a meme", "explain this meme", "famous memes",
+        "most iconic memes", "legendary memes", "classic memes"
+      ],
+      "responses": [
+        "Welcome to DezzBot's MEME ENCYCLOPEDIA! 📖🔥\n\nAsk me about any specific meme and I'll give you the full breakdown. Here are some legendary ones:\n\n🐕 DOGE (2013)\nOrigin: Photo of a Shiba Inu dog with Comic Sans text in broken English ('much wow', 'so amaze', 'very doge'). Became one of the most enduring meme formats ever. Also inspired the Dogecoin cryptocurrency! 'Much wow, such coin.'\n\n🦍 HARAMBE (2016)\nOrigin: A gorilla at Cincinnati Zoo who was shot after a child fell into his enclosure. The internet turned his death into a surreal memorial meme movement that lasted years. 'Dicks out for Harambe.'\n\n🐸 PEPE THE FROG\nOrigin: Created by Matt Furie in 2005 comic 'Boy's Club'. Became one of the most versatile reaction images. 'Feels good man', 'Feels bad man', Sad Pepe, Smug Pepe, etc. Later reclaimed by Furie with 'Save Pepe' campaign.\n\n👀 DISTRACTED BOYFRIEND (2017)\nOrigin: A stock photo by photographer Antonio Guillem of a man checking out another woman while his girlfriend looks shocked. Used for EVERY type of comparison situation.\n\n💅 DRAKE POINTING (2016)\nOrigin: Screenshot from Drake's 'Hotline Bling' music video. Top panel = Drake looking disapproving. Bottom = Drake looking pleased. Used for any 'prefer this over that' situation.\n\n🔥 'THIS IS FINE' DOG (2013)\nOrigin: Webcomic by KC Green. Dog sitting calmly at a table while the room is on fire, saying 'This is fine.' Used to express stoic acceptance of disaster.\n\n🙄 BLINKING WHITE GUY (2017)\nOrigin: GIF of Drew Scanlon blinking with exaggerated surprise/confusion. Used to react to something baffling or unbelievable.\n\n🎵 RICK ROLL (2007)\nOrigin: Bait-and-switch prank where a link claims to be something else but leads to Rick Astley's 'Never Gonna Give You Up'. Still works in 2025. 'You got Rickrolled!'\n\nAsk me about any specific meme for the full deep dive! 🎯",
+        "More legendary memes from the DezzBot encyclopedia! 📚\n\n🧠 EXPANDING BRAIN (2017)\nMultiple panels of increasingly 'expanding' brain images representing increasingly absurd but supposedly more enlightened takes. Used ironically and sincerely.\n\n🦋 'IS THIS A PIGEON?' (1991/2017)\nOrigin: Screenshot from 1991 anime 'The Brave Fighter of Sun Fighbird'. Character points at a butterfly asking if it's a pigeon. Used when someone dramatically misidentifies something.\n\n👦 'HAROLD HIDING THE PAIN' (2011)\nOrigin: Stock photos of Hungarian man András Arató smiling through obvious emotional pain. Used to represent hiding suffering behind a forced smile.\n\n🌮 'I CAN HAS CHEEZBURGER' (2007)\nOrigin: Photo of a round gray cat with text asking for a cheeseburger. Launched LOLcat culture and image macro memes as we know them.\n\n📊 'TWO BUTTONS' / 'SWEATING GUY'\nOrigin: Comic of a man sweating nervously while deciding which of two options to press. Used for impossible choices.\n\n😎 GRU'S PLAN (2013/2016)\nOrigin: Screenshot from Despicable Me of Gru pointing at a flipchart. Used for plans that end with a twist: steps 1-2 work great, step 3 is the same as step 1 but disaster strikes.\n\n🤷 EPIC FAIL / WIN (2007)\nOrigin: Online gaming culture. 'FAIL' stamp on bad decisions, 'WIN' on good ones. Led to fail compilations, win compilations, and the entire failure-content genre.\n\nDezzme is built to HOST all of these formats and the next generation of memes being created right now! 🚀"
+      ]
+    },
+
+    {
+      "tag": "internet_culture",
+      "patterns": [
+        "what is internet culture", "internet slang", "explain internet humor",
+        "what is stan culture", "what is stan", "what is cancel culture",
+        "what is twitter beef", "what is going viral", "what does viral mean",
+        "how does something go viral", "what is a copypasta", "navy seal copypasta",
+        "what is trolling", "what is a shitpost", "shitposting explained",
+        "what is cursed content", "what does based mean", "gen z humor",
+        "what is gen z humor", "absurdist humor memes", "dark humor memes"
+      ],
+      "responses": [
+        "Internet Culture — the full guide! 🌐\n\n🗣️ INTERNET SLANG DICTIONARY:\n\n📌 COPYPASTA — A block of text copied and pasted everywhere, often absurdly long or threatening. The Navy Seal Copypasta ('What the f*** did you just f***ing say about me...') is the most famous example. On Dezzme, copypastas go in the text feed!\n\n😈 TROLLING — Deliberately provoking people online for entertainment. Ranges from harmless jokes to serious harassment.\n\n💩 SHITPOSTING — Deliberately low-effort, ironic, or absurd content posted for laughs. Quality doesn't matter — vibe does. Gen Z elevated this to an art form.\n\n👾 CURSED CONTENT — Images/videos that feel deeply wrong, unsettling, or uncanny but in an amusing way. 'That's cursed' = something shouldn't exist but does.\n\n🌟 GOING VIRAL — Content that spreads exponentially. Something 'goes viral' when shares/reposts create a feedback loop of exposure. No formula guarantees it.\n\n💜 STAN CULTURE — Extremely devoted fandoms, usually around music artists or celebrities. Named after Eminem's 2000 song 'Stan' about an obsessive fan.\n\n❌ CANCEL CULTURE — Mass collective criticism of a public figure for perceived bad behavior. Can range from genuine accountability to mob mentality.\n\n😂 GEN Z HUMOR EXPLAINED:\n• Absurdist — Random, nonsensical, out of context\n• Self-aware — Meta humor about humor itself\n• Anti-humor — Deliberately 'unfunny' as the joke\n• Irony stacking — So many layers of irony meaning is lost\n• NPC content — Treating people as background characters\n\nWhy Gen Z humor confuses older generations:\nIt's often intentionally BAD. The badness IS the joke. Traditional humor = setup + punchline. Gen Z humor = subvert expectations so hard there is no punchline. That IS the punchline.\n\nAll of this lives and evolves on platforms like Dezzme! 🔥"
+      ]
+    },
+
+    {
+      "tag": "dezzme_name",
+      "patterns": [
+        "why is it called dezzme", "what does dezzme mean", "why peura",
+        "peura or dezzme", "name meaning", "is it peura or dezzme",
+        "what does peura mean", "app name meaning", "dezzme vs peura",
+        "what is a peumer", "user types", "who are peumers"
+      ],
+      "responses": [
+        "The name story! 🎭\n\nThe app STARTED as PEURA — that was the original project name and codename. You'll still see 'Peura' throughout the codebase and parts of the UI.\n\nThen it rebranded to DEZZME:\n• DEZZME = the platform name\n• PEURA = still used for some internal references\n• PEUMERS = what users are called (from Peura!)\n\nSo the ecosystem is:\n🏠 The platform: DEZZME\n🌐 The app: DEZZME  \n👤 The users: PEUMERS (from Peura)\n👥 Community: 'Welcome to Dezzme, Peumer!'\n\nOther user terminology:\n🎭 Dezzmer — the default user type you set in your profile\n⭐ Peumer — active community member identity\n🎬 Creator — content-focused identity\n\nThese are self-set identities in Settings — you choose how you identify on the platform!\n\nThe 'Regular' rank is everyone's starting rank. Future updates may bring additional rank tiers. 👑"
+      ]
+    },
+
+    {
+      "tag": "trending_feed",
+      "patterns": [
+        "how does the feed work", "how does trending work", "feed algorithm",
+        "ai feed", "personalized feed", "how does dezzme recommend memes",
+        "why do i see certain memes", "feed personalization",
+        "trending algorithm", "how are trending memes ranked",
+        "peura ai", "dezzme ai", "feed filters", "what does trending mean on dezzme"
+      ],
+      "responses": [
+        "The Dezzme Feed & AI Personalization System! 🤖\n\nDezzme has a FULL AI personalization engine! Here's how it works:\n\n📊 TRENDING SCORE (default feed):\nEvery meme gets a score based on:\n• Likes × 4.0 points\n• Reposts × 6.0 points (most weighted!)\n• Favorites × 3.0 points\n• Views × 2.0 (log scale)\n• Divided by TIME (older = lower score)\n• + Small random factor (prevents pure popularity echo)\n\n🧠 PEURA AI PERSONALIZATION:\nThe system tracks what TAGS you interact with:\n• Repost = 6.0 affinity points\n• Favorite = 4.0 affinity points\n• Like = 2.0 affinity points\n• View = 0.5 affinity points\n• RECENCY DECAY — older interactions count less\n\nResult: memes with your favourite tags get a MULTIPLIER on their trending score!\n\nFeed Filters you can choose:\n🔥 Trending — AI-personalized default\n❤️ Most Liked — highest like count\n🔁 Most Reposted — highest repost count\n🔖 Most Favorited — highest favorite count\n👁️ Most Viewed — highest view count\n🆕 Newest — most recent first\n👥 Tracking — only people you track\n🌍 Discover — random exploration\n\n🏷️ TAG PILLS:\n50+ hashtag filter options at the top of the feed\nYour favourite tags float to the TOP of the bar\n\nThe result: a feed that learns what makes YOU laugh. 🔥"
+      ]
+    },
+
+    {
+      "tag": "social_proof",
+      "patterns": [
+        "what are the profile pictures below memes", "social proof feature",
+        "avatars under memes", "who liked this meme showing",
+        "profile pictures on meme cards", "social proof avatars",
+        "liked by friends", "friends who liked this", "engagement row"
+      ],
+      "responses": [
+        "The Social Proof System on Dezzme! 👀\n\nWhen your friends (people you track) like or repost a meme, their profile pictures appear FLOATING on the meme card!\n\nHow it looks:\n• Small circular avatars at the bottom of meme cards\n• Each avatar shows whether that person liked ❤️ or reposted 🔁\n• Up to 4 avatars show at once\n• They float with a gentle bobbing animation!\n\nThe Engagement Row (below the card):\n• Shows 'Liked by @username and X others'\n• Shows the repost count\n• Tap it → opens the full engagement modal\n• See ALL likes and reposts in a searchable list!\n\nWhy this matters:\n• Seeing your friends engage with a meme creates social pressure to check it out\n• 'Oh, @Leah liked this? Must be funny!'\n• Creates a network effect around memes\n• Builds community engagement organically\n\nThis is Dezzme's version of 'liked by 2 people you follow' but more visual and more fun! 🔥"
+      ]
+    },
+
+    {
+      "tag": "account_recovery",
+      "patterns": [
+        "forgot password", "reset password", "can't login", "lost password",
+        "password reset", "how to reset password", "i forgot my password",
+        "account recovery", "can't access account", "locked out",
+        "lost access", "how do i get back in", "email to reset password"
+      ],
+      "responses": [
+        "Account recovery on Dezzme! 🔑\n\nForgot your password? No problem — here's how:\n\n1️⃣ Go to the LOGIN page (login.php)\n2️⃣ Click 'Forgot Password'\n3️⃣ Enter your registered EMAIL ADDRESS\n4️⃣ Check your email inbox\n5️⃣ Click the reset link in the email\n6️⃣ Set a brand new password\n7️⃣ Log back in!\n\n⚠️ Important:\n• Use the EXACT email you signed up with\n• Check spam/junk folder if email doesn't arrive\n• Reset links expire — use it promptly!\n\nStill stuck?\n• Contact support through the Settings page\n• Email the admin directly\n\nPassword tips:\n✅ Use a strong password (mix of letters, numbers, symbols)\n✅ Don't use the same password as other sites\n✅ Consider a password manager\n\nYour account, your memes, your vibe — we'll get you back in! 💪"
+      ]
+    },
+
+    {
+      "tag": "delete_account",
+      "patterns": [
+        "how to delete account", "delete my account", "remove account",
+        "deactivate account", "close account", "how to leave dezzme",
+        "account deletion", "permanently delete", "remove all my data"
+      ],
+      "responses": [
+        "Account deletion on Dezzme ⚠️\n\nBefore you go — are you sure? Your Dezzme family will miss you! 💔\n\nIf you're having a SPECIFIC issue, try these first:\n🔒 Make account private (Settings → Privacy → Fully Private)\n😴 Take a break — just stop using it for a while\n📞 Contact support — maybe we can help!\n\nIf you still want to delete:\n1️⃣ Go to Settings (⚙️)\n2️⃣ Find the Account section\n3️⃣ Look for 'Delete Account'\n4️⃣ Confirm deletion\n\n⚠️ WARNING — this is PERMANENT and IRREVERSIBLE:\n❌ All your memes deleted\n❌ All messages deleted\n❌ All followers/tracking deleted\n❌ Collections, sounds, favorites — all gone\n❌ Username becomes available again\n❌ Cannot be undone!\n\nFor data-related requests, reach out to the admin before deleting — some things may be recoverable if you change your mind quickly.\n\nWe genuinely hope you stay. But if you must go — thanks for being part of Dezzme. 🙏"
+      ]
+    },
+
+    {
+      "tag": "memepedia_vision",
+      "patterns": [
+        "what is memepedia", "dezzme memepedia", "meme archive",
+        "meme museum", "internet archive", "preserve memes",
+        "dezzme future plans", "memepedia feature",
+        "future of dezzme", "what is dezzme building"
+      ],
+      "responses": [
+        "Memepedia — Dezzme's most ambitious vision! 🏛️\n\nWhat is Memepedia?\nThe internet's first dedicated MUSEUM of meme and internet culture. A living, searchable archive of every meme format, its origin, evolution, and cultural significance.\n\nThe problem it solves:\nThe internet FORGETS. Old memes die. Origins get lost. Context disappears. 'Where did this meme come from?' becomes unanswerable after a few years.\n\nMemepedia remembers.\n\nWhat Memepedia would contain for each meme:\n📅 Origin — when and where it started\n🌐 Timeline — how it evolved\n🔀 Evolution — variations and remixes\n⭐ Significance — why it mattered culturally\n🌿 Descendants — memes that spawned from it\n📊 Spread map — how it went viral\n\nExamples of what it would document:\n• Distracted Boyfriend → origin, every variation, current uses\n• Harambe → timeline from news story to cultural phenomenon\n• 'This Is Fine' → artist credit, original comic, evolution\n• Brainrot → when did it start, who coined it, where it went\n\nWhy this matters:\nMemes are the folklore of the internet generation. Future historians will study them. Memepedia is where that history lives.\n\n'The internet forgets. Memepedia remembers.' 🔥\n\nThis is a FUTURE feature being planned for Dezzme. Stay tuned!"
+      ]
+    },
+
+    {
+      "tag": "help_support",
+      "patterns": [
+        "i need help", "support", "contact support", "help",
+        "something is broken", "bug report", "report a bug",
+        "app not working", "feature not working", "technical issue",
+        "dezzme support", "contact dezzme", "who do i contact",
+        "something went wrong", "error on dezzme", "page not loading"
+      ],
+      "responses": [
+        "I'm your Dezzme support bot — I'm here for everything! 🙌\n\nWhat I can help with RIGHT NOW:\n✅ How to use any feature (just ask!)\n✅ Look up user profiles on Dezzme\n✅ Live platform statistics\n✅ Meme culture & internet history questions\n✅ Account and privacy questions\n✅ Understanding content policies\n✅ Technical guidance for common issues\n\nFor more serious issues:\n🐛 Bug reports → Settings → Report a Bug option\n📧 Account issues → Contact via your registered email\n👤 Admin contact → Reach out through the platform\n\nTry asking me:\n• 'Who is [username] on Dezzme?'\n• 'How many people are on Dezzme?'\n• 'What is the most liked meme?'\n• 'How do [feature] work?'\n• 'Tell me about the Distracted Boyfriend meme'\n• 'What does ratio mean?'\n\nI know Dezzme INSIDE and OUT. What do you need? 💬"
+      ]
+    },
+
+    {
+      "tag": "content_rules",
+      "patterns": [
+        "what are the rules", "content policy", "community guidelines",
+        "what is allowed", "what is not allowed", "banned content",
+        "rules on dezzme", "posting rules", "content guidelines",
+        "can i post anything", "age restriction", "adult content",
+        "dezzme rules", "platform guidelines", "terms of service"
+      ],
+      "responses": [
+        "Dezzme Community Guidelines 📋\n\nDezzme's rule is simple: GOOD VIBES ONLY 🌟\n\n✅ WHAT'S WELCOME:\n• Funny memes — images, videos, text, audio\n• Creative remixes and parodies\n• Relatable content, hot takes, observations\n• @Mentions and #hashtags\n• Adult pods (18+ verified community spaces)\n• Self-expression and cultural commentary\n• Constructive criticism through humor\n\n❌ WHAT'S NOT ALLOWED:\n• Harassment or targeted bullying\n• Hate speech or discrimination (race, gender, sexuality, religion, disability)\n• Illegal content of any kind\n• Spam, bot activity, or fake accounts\n• Impersonation of real people\n• Non-consensual sharing of private content\n• Coordinated harassment campaigns\n\n⚠️ GREY AREAS:\n• Dark humor — generally okay if punching up, not at vulnerable groups\n• Satire — okay with clear satirical intent\n• Adult content — only allowed in designated 18+ adult pods\n\nConsequences for violations:\n🚩 Content removal\n⚠️ Account warning\n🔨 Account suspension or permanent ban\n\nHow to report violations:\n• User profile → ••• → Report\n• Meme card → ••• → Report\n• Choose a reason and submit\n\nKeep Dezzme fun, creative, and safe for everyone! 💙 The internet deserves a better home."
+      ]
+    },
+
+    {
+      "tag": "qr_code",
+      "patterns": [
+        "what is the qr code", "qr code feature", "meme qr code",
+        "how to share with qr", "share via qr code", "qr code on dezzme"
+      ],
+      "responses": [
+        "QR Code sharing on Dezzme! 📱\n\nEvery meme on Dezzme has a shareable QR code!\n\nHow to access:\n1️⃣ Find any meme in the feed\n2️⃣ Tap the ••• kebab menu\n3️⃣ Tap 'QR Code'\n4️⃣ A popup window opens with the QR code!\n\nThe QR code links directly to that specific meme on Dezzme.\n\nUse cases:\n📸 Screenshot the QR → share anywhere\n🖨️ Print it on something (merch, posters)\n📱 Someone scans it → lands on the meme\n🎯 Perfect for offline sharing of online content\n\nIt uses api.qrserver.com to generate the code dynamically — always accurate, always pointing to the right meme! 🔗"
+      ]
+    },
+
+    {
+      "tag": "share_meme",
+      "patterns": [
+        "how to share a meme", "share feature", "share link",
+        "share to other apps", "share meme link", "copy meme link",
+        "share on whatsapp", "how to share outside dezzme"
+      ],
+      "responses": [
+        "Sharing memes from Dezzme! 📤\n\nMethod 1 — Native Share:\n1️⃣ Tap ••• on any meme card\n2️⃣ Tap 'Share Post'\n3️⃣ If your device supports it → native share sheet opens\n4️⃣ Share to WhatsApp, Instagram, Twitter, etc.!\n\nMethod 2 — Copy Link:\nIf native share isn't available, the link is automatically copied to clipboard\nThen paste it anywhere!\n\nMethod 3 — QR Code:\nGenerate a QR code for the meme (via ••• menu)\nAnyone who scans it lands on the meme!\n\nThe shared link format:\nindex.php?meme=[meme_id]\nDirectly opens that specific meme on Dezzme.\n\nWhy sharing matters:\nEvery share is a tiny viral moment for the creator. The more memes get shared outside Dezzme, the more people discover the platform. Sharing IS the growth engine! 🚀"
+      ]
+    },
+
+    {
+      "tag": "insult_rude",
+      "patterns": [
+        "you are useless", "you're dumb", "stupid bot", "terrible",
+        "you suck", "worst bot", "garbage", "i hate you",
+        "you're trash", "bad bot", "shut up", "go away",
+        "this is bad", "you don't know anything", "horrible bot"
+      ],
+      "responses": [
+        "Ouch! 😅 I'm just trying to help here. Tell me what went wrong and I'll do better — I promise I know a LOT about Dezzme and memes!",
+        "Fair enough — I might not have answered perfectly! 😅 Try rephrasing your question and I'll give it another shot. I'm best when questions are specific!",
+        "I hear you! 💪 I'm still learning to be the best I can be. Ask me again and I'll bring my A-game. What do you actually need help with?",
+        "Okay okay, noted! 😅 I'm literally trained on all of Dezzme's features and meme culture history — I promise I'm useful. Try me with a real question! 🔥"
+      ]
+    },
+
+    {
+      "tag": "compliment",
+      "patterns": [
+        "you're great", "good bot", "you're helpful", "nice bot",
+        "you're amazing", "best bot", "love this", "you're smart",
+        "excellent", "perfect", "awesome bot", "you slayed",
+        "you're a w", "based bot", "this bot has rizz"
+      ],
+      "responses": [
+        "Aww thank you! 🥰 That made my circuits GLOW! Now hit me with your next question!",
+        "You're too kind! 😊 I'm just doing my job — keeping Dezzme users informed and meme-literate! What else can I help with?",
+        "I appreciate that! 💙 I'm here all day, every day, trained on everything Dezzme and meme-related. Ask me anything!",
+        "Thank you! 🔥 That W is going straight to my training data. Now let's keep solving your questions!"
+      ]
+    },
+
+    {
+      "tag": "general_chat",
+      "patterns": [
+        "how are you", "what are you", "are you a bot", "are you ai",
+        "who made you", "who created you", "tell me about yourself",
+        "what can you do", "what do you know", "what's your name",
+        "are you human", "talk to me", "chat with me",
+        "introduce yourself", "what do you know about memes",
+        "what's your knowledge"
+      ],
+      "responses": [
+        "I'm DezzBot — the AI brain of Dezzme! 🤖\n\nHere's what I know:\n\n📱 ALL of Dezzme:\n• Every feature, every setting, every tab\n• How the algorithm works\n• How to use everything\n• Live user lookups from the database\n• Real-time platform stats\n\n🎭 All of Meme Culture:\n• History from 1996 to 2025\n• Every famous meme explained\n• Internet slang dictionary\n• Gen Z humor decoded\n• Why things go viral\n\n👥 Dezzme Community:\n• Who the users are\n• What pods exist\n• Live stats on content, likes, reposts\n• Trending tags and top memes\n\nTry asking me:\n• 'Who is Leah on Dezzme?'\n• 'How many people are on Dezzme?'\n• 'What is brainrot?'\n• 'Tell me about the Drake meme'\n• 'How does the feed algorithm work?'\n\nI'm Dezzme-native, built with love, and I know this platform inside and out. 💪 What do you want to know?",
+        "Hey! I'm DezzBot! 🎭\n\nI'm the AI assistant built specifically for Dezzme. I'm not a generic AI — I'm trained on:\n\n1️⃣ Every Dezzme feature\n2️⃣ Meme history and internet culture\n3️⃣ Live database connections (user lookups, stats)\n4️⃣ The Dezzme philosophy and vision\n\nI can answer almost anything you throw at me about:\n• Using Dezzme\n• Meme culture and history\n• Internet slang\n• Specific users on Dezzme\n• Platform statistics\n\nI'm not perfect but I'm getting better. Ask me something — let's go! 🔥"
+      ]
+    },
+
+    {
+      "tag": "fallback",
+      "patterns": [],
+      "responses": [
+        "Hmm, I'm not quite sure about that one! 🤔 Try rephrasing — I'm best at:\n• Dezzme features and how-tos\n• User lookups ('who is [username]?')\n• Platform stats ('how many people are on Dezzme?')\n• Meme culture and history\n• Internet slang explained\n\nWhat specifically do you want to know?",
+        "That one stumped me a little! 🤷 I know a LOT but I'm not perfect. Try asking about Dezzme features, specific memes, internet culture, or type a username to look someone up!",
+        "Interesting question but I'm not sure I caught it fully! 😅 Be more specific — are you asking about a Dezzme feature, a specific user, a meme, or something about internet culture? I'll nail it once I know what you're after! 🎯",
+        "I didn't quite get that — could you rephrase? 🤔 I'm AMAZING at questions like:\n• 'How do collections work?'\n• 'What is the Drake meme?'\n• 'Who is Caelix on Dezzme?'\n• 'How many pods are there?'\n• 'What does rizz mean?'\n\nTry one of those and watch me go! 🔥"
+      ]
+    }
+
+  ]
+}
