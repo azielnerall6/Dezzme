@@ -6599,10 +6599,12 @@ if ((int)$current_user === (int)$profile_id && (int)$current_user > 0) {
 <script>window.dzHp = window.dzHp || function(k){ try{ if(window.dzHaptic && typeof window.dzHaptic[k]==='function') window.dzHaptic[k](); }catch(e){} };</script>
 <style>
 .dz-vb{ width:1em; height:1em; flex-shrink:0; display:inline-block; vertical-align:-.15em; color:inherit; }
-.rp-username-row > .dz-vb{ width:calc(var(--rp-username-fs) * .855); height:calc(var(--rp-username-fs) * .855); color:var(--red,#FF2D2D); margin-left:calc(-1px * var(--hd-s,1)); }
+.rp-username-row > .dz-vb{ width:calc(var(--rp-username-fs) * .83); height:calc(var(--rp-username-fs) * .83); color:var(--red,#FF2D2D); margin-left:0; }
+/* same gap between username and badge as in the top bar (.28em of the top bar's text size) */
+.rp-username-row:has(> .dz-vb){ gap:calc(.28 * clamp(.8rem, .6rem + 1vw, .92rem) * var(--hd-s)); }
 .rp-topbar-username{ gap:.28em; }
 .rp-topbar-username .dz-un-t{ min-width:0; overflow:hidden; text-overflow:ellipsis; }
-.rp-topbar-username .dz-vb{ width:1em; height:1em; color:var(--red,#FF2D2D); }
+.rp-topbar-username .dz-vb{ width:.94em; height:.94em; color:var(--red,#FF2D2D); }
 </style>
 <?php dz_offline_ui('body'); ?>
 <script>try{ if('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(function(){}); }catch(e){}   /* same service worker as the home page: shows offline.html when a page can't load at all */</script>
