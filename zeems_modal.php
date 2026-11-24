@@ -575,6 +575,35 @@ define('CCM_MODAL_LOADED', true);
 #cardCaptionModal.ccm-fsview .ccm-media-counter,
 #cardCaptionModal.ccm-fsview .ccm-media-arrow,
 #cardCaptionModal.ccm-fsview .ccm-fs-pill{ opacity:0 !important; pointer-events:none !important; transition:opacity .24s ease !important; }
+/* pinch in progress: everything fades by the amount the fingers have opened (--ccm-peek 0..1); settle = the glide on release */
+#cardCaptionModal.ccm-peeking .ccm-slide > *:not(.ccm-media-box):not(.ccm-video-progress),
+#cardCaptionModal.ccm-peeking #ccm-fixed-topbar,
+#cardCaptionModal.ccm-peeking #ccm-arrows,
+#cardCaptionModal.ccm-peeking #ccm-side-rail,
+#cardCaptionModal.ccm-peeking .ccm-paused-controls,
+#cardCaptionModal.ccm-peeking .ccm-tap-flash,
+#cardCaptionModal.ccm-peeking .ccm-type-tag,
+#cardCaptionModal.ccm-peeking .ccm-media-dashes,
+#cardCaptionModal.ccm-peeking .ccm-media-counter,
+#cardCaptionModal.ccm-peeking .ccm-media-arrow,
+#cardCaptionModal.ccm-peeking .ccm-fs-pill{ opacity:calc(1 - var(--ccm-peek, 0)) !important; pointer-events:none !important; transition:none !important; }
+#cardCaptionModal.ccm-peeking.ccm-peek-settle .ccm-slide > *:not(.ccm-media-box):not(.ccm-video-progress),
+#cardCaptionModal.ccm-peeking.ccm-peek-settle #ccm-fixed-topbar,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle #ccm-arrows,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle #ccm-side-rail,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle .ccm-paused-controls,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle .ccm-tap-flash,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle .ccm-type-tag,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle .ccm-media-dashes,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle .ccm-media-counter,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle .ccm-media-arrow,
+#cardCaptionModal.ccm-peeking.ccm-peek-settle .ccm-fs-pill{ transition:opacity .24s ease !important; }
+.ccm-fsx{ z-index:60 !important; display:flex !important; }
+.ccm-unzoom-btn svg{ display:none !important; }
+.ccm-unzoom-btn::after{ content:''; display:block; width:calc(22px * var(--ccm-s, 1)); height:calc(22px * var(--ccm-s, 1)); background:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 3v3a2 2 0 0 1-2 2H3'/%3E%3Cpath d='M21 8h-3a2 2 0 0 1-2-2V3'/%3E%3Cpath d='M3 16h3a2 2 0 0 1 2 2v3'/%3E%3Cpath d='M16 21v-3a2 2 0 0 1 2-2h3'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 3v3a2 2 0 0 1-2 2H3'/%3E%3Cpath d='M21 8h-3a2 2 0 0 1-2-2V3'/%3E%3Cpath d='M3 16h3a2 2 0 0 1 2 2v3'/%3E%3Cpath d='M16 21v-3a2 2 0 0 1 2-2h3'/%3E%3C/svg%3E") center/contain no-repeat; }
+.ccm-fsx svg{ width:calc(22px * var(--ccm-s, 1)) !important; height:calc(22px * var(--ccm-s, 1)) !important; fill:none !important; stroke:currentColor !important; stroke-width:2 !important; stroke-linecap:round !important; stroke-linejoin:round !important; }
+.ccm-fsx svg path{ fill:none !important; stroke:currentColor !important; vector-effect:none !important; }
 .ccm-unzoom-btn{
     position:absolute; right:14px; bottom:calc(40px * var(--ccm-s, 1)); z-index:13;
     width:calc((36px + 6 * var(--ccm-t, .5px)) * var(--ccm-s, 1)); height:calc((36px + 6 * var(--ccm-t, .5px)) * var(--ccm-s, 1));

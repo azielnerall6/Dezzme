@@ -3353,7 +3353,7 @@ function lfmShare(){
 function lfmReport(){
     var p = LFM.data;
     if (!p) return;
-    if (typeof openReportModal === 'function') { openReportModal(p.id); return; }
+    if (typeof openReportModal === 'function') { openReportModal({ contentId: p.id, contentType: 'longform', ownerId: p.user_id || null }); return; }
     /* until a dedicated report modal exists, use the report step already in the ⋯ sheet */
     var card = document.createElement('div');
     card.setAttribute('data-title', p.title);

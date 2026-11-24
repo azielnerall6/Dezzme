@@ -146,6 +146,12 @@ if (isset($_POST['rc_action'])) {
         $cid   = (int)($_POST['cid'] ?? 0);
         if ($ctype === 'meme')    $conn->query("DELETE FROM memes    WHERE id=$cid");
         if ($ctype === 'message') $conn->query("DELETE FROM messages WHERE id=$cid");
+        try {
+            /* these are whole items with their own tables: remove the item and its media */
+            if ($ctype === 'highlight')       { $conn->query("DELETE FROM highlight_media       WHERE highlight_id=$cid"); $conn->query("DELETE FROM highlights       WHERE id=$cid"); }
+            if ($ctype === 'group_highlight') { $conn->query("DELETE FROM group_highlight_media WHERE highlight_id=$cid"); $conn->query("DELETE FROM group_highlights WHERE id=$cid"); }
+            if ($ctype === 'longform')        { $conn->query("DELETE FROM longform_posts        WHERE id=$cid"); }
+        } catch (Throwable $e) {}
         echo json_encode(['ok' => true]);
 
     } elseif ($action === 'delete_article') {
@@ -289,6 +295,13 @@ $article_reports = $conn->query("
 ");
 
 // Account appeals (written by the suspended-account screen on profile.php)
+/* content_reports.content_type must be able to hold 'highlight', 'group_highlight' and 'longform' (an old ENUM('meme','comment','message') would reject / blank them) */
+try {
+    $__ct = $conn->query("SHOW COLUMNS FROM content_reports LIKE 'content_type'");
+    if ($__ct instanceof mysqli_result && ($__ctr = $__ct->fetch_assoc()) && stripos((string)$__ctr['Type'], 'enum') === 0) {
+        $conn->query("ALTER TABLE content_reports MODIFY content_type VARCHAR(30) NOT NULL DEFAULT 'meme'");
+    }
+} catch (Throwable $e) {}
 @$conn->query("CREATE TABLE IF NOT EXISTS account_appeals (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, message VARCHAR(1000) NOT NULL DEFAULT '', status VARCHAR(20) NOT NULL DEFAULT 'pending', admin_notes TEXT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, KEY k_appeal_user (user_id, created_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 @$conn->query("CREATE TABLE IF NOT EXISTS pod_appeals (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, group_id INT NOT NULL, user_id INT NOT NULL, message VARCHAR(1000) NOT NULL DEFAULT '', status VARCHAR(20) NOT NULL DEFAULT 'pending', admin_notes TEXT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, KEY k_pa_group (group_id, created_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 try { $pod_appeals = $conn->query("
@@ -691,15 +704,17 @@ tbody td{padding:12px 16px;font-size:12.5px;color:rgba(255,255,255,.8);vertical-
                 <tr><td colspan="9"><div class="rc-empty"><i class="ri-image-2-line"></i>No content reports found</div></td></tr>
             <?php else:
                 while ($r = $content_reports->fetch_assoc()):
-                    $ct_icons = ['meme'=>'ri-image-line','comment'=>'ri-chat-1-line','message'=>'ri-message-2-line'];
+                    $ct_icons = ['meme'=>'ri-image-line','comment'=>'ri-chat-1-line','message'=>'ri-message-2-line','highlight'=>'ri-slideshow-3-line','group_highlight'=>'ri-slideshow-3-line','longform'=>'ri-movie-2-line'];
+                    $ct_names = ['meme'=>'Post','comment'=>'Comment','message'=>'Message','highlight'=>'Highlight','group_highlight'=>'Pod highlight','longform'=>'Longform video'];
                     $ct_icon  = $ct_icons[$r['content_type']] ?? 'ri-file-line';
+                    $ct_name  = $ct_names[$r['content_type']] ?? ucfirst((string)$r['content_type']);
                     [$cont_hint, $cont_desc] = rcSplitHint($r['description'] ?? '', 'Post ID');
             ?>
                 <tr id="crow-<?= $r['id'] ?>">
                     <td style="color:rgba(255,255,255,.35);font-size:11px;">#<?= $r['id'] ?></td>
                     <td>
                         <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.06);padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;">
-                            <i class="<?= $ct_icon ?>"></i> <?= ucfirst($r['content_type']) ?>
+                            <i class="<?= $ct_icon ?>"></i> <?= htmlspecialchars($ct_name) ?>
                         </span>
                     </td>
                     <td style="font-size:11px;color:rgba(255,255,255,.4);">#<?= $r['content_id'] ?></td>
@@ -721,6 +736,8 @@ tbody td{padding:12px 16px;font-size:12.5px;color:rgba(255,255,255,.8);vertical-
                             <?php if ($r['content_type']==='meme'): ?>
                             <a href="meme_view.php?id=<?= $r['content_id'] ?>" target="_blank" class="rc-act"><i class="ri-eye-line"></i> View</a>
                             <button class="rc-act red" onclick="rcConfirm('remove_content',{rid:<?=$r['id']?>,rtype:'content',cid:<?=$r['content_id']?>,ctype:'<?=$r['content_type']?>',uid:<?=(int)($r['content_owner_id']??0)?>},'Remove Content','Permanently delete this meme?','Remove','red')"><i class="ri-delete-bin-line"></i> Remove</button>
+                            <?php elseif (in_array($r['content_type'], ['highlight','group_highlight','longform'], true)): ?>
+                            <button class="rc-act red" onclick="rcConfirm('remove_content',{rid:<?=$r['id']?>,rtype:'content',cid:<?=$r['content_id']?>,ctype:'<?=$r['content_type']?>',uid:<?=(int)($r['content_owner_id']??0)?>},'Remove <?= $ct_name ?>','Permanently delete this <?= strtolower($ct_name) ?>?','Remove','red')"><i class="ri-delete-bin-line"></i> Remove</button>
                             <?php elseif ($r['content_type']==='message'): ?>
                             <button class="rc-act red" onclick="rcConfirm('remove_content',{rid:<?=$r['id']?>,rtype:'content',cid:<?=$r['content_id']?>,ctype:'message',uid:<?=(int)($r['content_owner_id']??0)?>},'Delete Message','Permanently delete this message?','Delete','red')"><i class="ri-delete-bin-line"></i> Delete</button>
                             <?php endif; ?>

@@ -2462,7 +2462,7 @@ document.addEventListener('keydown', function (e) {
   window.hlReport=function(){
     var id=cur().id;
     hlCloseSheet();
-    if(typeof openReportModal==='function') openReportModal({contentId:id,contentType:'highlight'});
+    if(typeof openReportModal==='function') openReportModal({contentId:id,contentType:'group_highlight'});
     else toast('Report unavailable');
   };
 

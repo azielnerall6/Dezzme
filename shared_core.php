@@ -148,6 +148,7 @@ if(!defined('DZ_TM_DOWN_SEC'))        define('DZ_TM_DOWN_SEC', 30);      /* afte
 if(!defined('DZ_TM_MAIN'))            define('DZ_TM_MAIN', true);        /* false = shadow log only, feed is 100% PHP */
 if(!defined('DZ_TM_WEIGHT'))          define('DZ_TM_WEIGHT', 0.55);      /* TasteMatch's share; PHP gets 1 - this (0.55 = Python slightly higher) */
 if(!defined('DZ_TM_FUSE_K'))          define('DZ_TM_FUSE_K', 20);        /* smoothing: higher = the very top ranks matter a little less */
+if(!defined('DZ_TM_CACHE_SEC'))       define('DZ_TM_CACHE_SEC', 60);      /* re-use TasteMatch's picks for this long in the same session (opening Zeems / home again right away does not call Python again). 0 = always ask */
 if(!defined('DZ_TM_BLEND_LIMIT'))     define('DZ_TM_BLEND_LIMIT', 50);   /* how many picks are asked from TasteMatch (Flask caps at 50) */
 
 /* ── v9: timing helpers ── */
@@ -262,6 +263,9 @@ if(!function_exists('dz_tm_ranks')){
         if($uid <= 0) return [];
         try{
             if((int)($_SESSION['dz_tm_down_until'] ?? 0) > time()) return [];
+            /* picks asked a moment ago for this same person: use them (saves a round trip to the Python service) */
+            $_tc = $_SESSION['dz_tm_cache'] ?? null;
+            if((int)DZ_TM_CACHE_SEC > 0 && is_array($_tc) && (int)($_tc['u'] ?? 0) === $uid && (time() - (int)($_tc['t'] ?? 0)) < (int)DZ_TM_CACHE_SEC && !empty($_tc['out'])) return (array)$_tc['out'];
             $tm = tm_fetch($uid, max(1, min(50, (int)DZ_TM_BLEND_LIMIT)));
             if(empty($tm['ok']) || empty($tm['items'])){
                 if(empty($tm['ok']) && session_status() === PHP_SESSION_ACTIVE) $_SESSION['dz_tm_down_until'] = time() + (int)DZ_TM_DOWN_SEC;
@@ -270,6 +274,7 @@ if(!function_exists('dz_tm_ranks')){
             }
             $out = [];
             foreach($tm['items'] as $it){ $out[(int)$it['meme_id']] = (int)$it['rank']; }
+            if((int)DZ_TM_CACHE_SEC > 0 && session_status() === PHP_SESSION_ACTIVE) $_SESSION['dz_tm_cache'] = ['u' => $uid, 't' => time(), 'out' => $out];
             return $out;
         }catch(Throwable $e){ return []; }
     }
@@ -2851,7 +2856,7 @@ $following = null;
 $defaultPic = 'uploads/mee.jpeg';
 $_follow_bar_new_map = [];
 $follow_ids = [];
-if(!$DZ_IS_SEARCH && $user_id){
+if(!$DZ_IS_SEARCH && $user_id && empty($DZ_LEAN)){   /* $DZ_LEAN (zeems.php): the "people you track" bar is not shown there, so skip these two queries */
     $stmt = $conn->prepare("SELECT u.id, u.username, u.profile_pic FROM followers f JOIN users u ON f.following_id = u.id WHERE f.follower_id = ? AND u.deactivated_at IS NULL AND LOWER(COALESCE(u.user_rank,'')) NOT IN ('suspended','banned') ORDER BY f.id DESC");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();

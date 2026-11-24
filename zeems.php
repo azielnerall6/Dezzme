@@ -1,4 +1,11 @@
-<?php $DZ_PAGE='home';     $DZ_TEXT_ONLY=false; require_once 'shared_core.php'; ?>
+<?php
+/* FAST START: this page only needs the FIRST post — the player fetches its own run (60 posts at a time) in the background.
+   So the page builds a small first page (8 posts, not 150), skips the home-only "people you track" bar, and shares its
+   ranking session (seed + asof) with the player below, so the player's first request reuses the ranking instead of redoing it. */
+$DZ_PAGE='home'; $DZ_TEXT_ONLY=false; $DZ_LEAN=true;
+if(!defined('DZ_FEED_PAGE')) define('DZ_FEED_PAGE', 8);
+require_once 'shared_core.php';
+?>
 <?php include 'timeout.php'; ?>
 <?php
 /* ================================================================
@@ -18,7 +25,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Zeems | Dezzme</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- connect to the font / icon hosts right away, and fetch the icon + theme CSS before the page has finished loading -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script>try{if(localStorage.getItem('dz_theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
 <link rel="stylesheet" href="theme_css.php?v=<?= @filemtime(__DIR__.'/theme_css.php') ?>"> <!-- shared theme: colours, captions, feed (same as home.php) -->
@@ -65,9 +76,48 @@ window._suggPromise = fetch('zeems.php?type=sugg', {credentials:'same-origin'}).
     .catch(function(){ window.cmSuggUsers = []; return []; });
 </script>
 
-<?php include 'shared_modals.php'; /* post menu (⋯), Save to Collection sheet, Report modal */ ?>
-<?php include 'comment_section.php'; /* comments sheet */ ?>
+<?php
+/* ── the first post's picture (or video poster) starts downloading NOW, while the rest of the page is still being read ── */
+$__zp0 = (is_array($_peura_feed_data) && !empty($_peura_feed_data[0]) && is_array($_peura_feed_data[0])) ? $_peura_feed_data[0] : null;
+if ($__zp0 && !empty($__zp0['file']) && is_string($__zp0['file']) && in_array(strtolower((string)($__zp0['type'] ?? '')), ['image', 'gif', 'sticker'], true)) {
+    echo '<link rel="preload" as="image" href="' . htmlspecialchars($__zp0['file'], ENT_QUOTES) . '" fetchpriority="high">' . "\n";
+}
+?>
+
+<?php
+/* ═══ The menu (⋯) / Save / Report sheets and the comment sheet are NOT needed to show the first post ═══
+   They are put aside inside an inert <template> (the browser does not parse or run them), the player opens straight away,
+   and they are switched on a moment later — or instantly on the first touch, so a tap on ⋯ or the comment icon always finds them ready. */
+ob_start();
+include 'shared_modals.php';    /* post menu (⋯), Save to Collection sheet, Report modal */
+include 'comment_section.php';  /* comments sheet */
+$__zp_lazy = ob_get_clean();
+?>
+<template id="zpLazy"><?= $__zp_lazy ?></template>
+<script>
+(function(){
+    var done = false;
+    window.zpWake = function(){
+        if(done) return; done = true;
+        var t = document.getElementById('zpLazy'); if(!t || !t.content) return;
+        var frag = t.content.cloneNode(true);
+        /* scripts inside a <template> must be re-created to run, in the same order */
+        Array.prototype.slice.call(frag.querySelectorAll('script')).forEach(function(old){
+            var s = document.createElement('script');
+            for(var i = 0; i < old.attributes.length; i++) s.setAttribute(old.attributes[i].name, old.attributes[i].value);
+            if(old.src) s.async = false; else s.text = old.textContent;
+            old.parentNode.replaceChild(s, old);
+        });
+        document.body.appendChild(frag);
+    };
+    ['pointerdown','touchstart','keydown','mousedown'].forEach(function(ev){ window.addEventListener(ev, window.zpWake, { capture:true, once:true, passive:true }); });
+})();
+</script>
 <?php include 'zeems_modal.php'; /* the player itself */ ?>
+<script>
+/* hand the page's ranking session to the player: its first background request (page 1) then hits the ranking the server already remembers */
+try{ if(window._ccmOwn && !window._ccmOwn.seed){ _ccmOwn.seed = <?= (int)($feed_seed ?? 0) ?>; _ccmOwn.asof = <?= (int)($feed_asof ?? 0) ?>; } }catch(e){}
+</script>
 
 <script>
 (function(){
@@ -101,11 +151,13 @@ window._suggPromise = fetch('zeems.php?type=sugg', {credentials:'same-origin'}).
         var p = peuraFeed[0];
         try{
             openCardModal(p.file, p.type, p.pic, p.userId, p.username, p.caption, p.id);
-            var l = document.getElementById('zpLoad'); if(l) setTimeout(function(){ l.style.display = 'none'; }, 400);
+            var l = document.getElementById('zpLoad'); if(l) requestAnimationFrame(function(){ requestAnimationFrame(function(){ l.style.display = 'none'; }); });
         }catch(e){ opened = false; if(window.console) console.error('zeems.php: could not open the player', e); empty(); }
     }
-    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ start(0); });
-    else start(0);
+    /* this script sits at the very end of the page, so everything above it is already here: open the player NOW (no waiting for DOMContentLoaded) */
+    start(0);
+    /* a moment after the first post is up, switch on the menu / comment sheets in the background */
+    (window.requestIdleCallback ? function(f){ requestIdleCallback(f, { timeout: 1200 }); } : function(f){ setTimeout(f, 600); })(function(){ if(window.zpWake) window.zpWake(); });
 
     /* coming back to this page from the browser's back/forward cache: the player was closed on the way out, open it again */
     window.addEventListener('pageshow', function(e){ if(e.persisted){ leaving = false; opened = false; start(0); } });

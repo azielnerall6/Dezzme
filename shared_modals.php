@@ -966,10 +966,27 @@ function svshToast(msg){
 .idx-auto-row .idx-sw::after{ content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition:transform .2s; box-shadow:0 1px 3px rgba(0,0,0,.35); }
 .idx-auto-row .idx-sw.on{ background:#f24455 !important; }
 .idx-pb-go{ margin-left:auto; flex-shrink:0; opacity:.55; display:block; }
-.idx-pb-label{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; opacity:.5; padding:14px 4px 6px; font-weight:700; }
-.idx-pb-chips{ display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 6px; }
-.idx-pb-chip{ cursor:pointer; padding:9px 14px; -webkit-tap-highlight-color:transparent; }
+.idx-pb-top{ display:flex; align-items:center; justify-content:space-between; padding:calc(8px * var(--dz-s,1)) calc(12px * var(--dz-s,1)); border-bottom:1px solid rgba(var(--dz-fg,255,255,255),.08); }
+.idx-pb-backbtn{ width:34px; height:34px; margin-left:-8px; border:0; background:transparent; color:inherit; display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:.8; -webkit-tap-highlight-color:transparent; }
+.idx-pb-backbtn:active{ opacity:.5; }
+.idx-pb-title{ font-weight:700; font-size:calc(12.5px * var(--dz-s,1)); text-align:right; }
+.idx-pb-label{ display:flex; align-items:baseline; justify-content:space-between; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; opacity:.55; padding:16px calc(12px * var(--dz-s,1)) 7px; font-weight:700; }
+.idx-pb-hint{ font-size:10.5px; letter-spacing:0; text-transform:none; font-weight:500; opacity:.8; }
+.idx-pb-group{ border-top:1px solid rgba(var(--dz-fg,255,255,255),.08); }
+.idx-pb-group .idx-sheet-item:first-child{ border-top:0; }
+.idx-pb-txt{ display:flex; flex-direction:column; min-width:0; flex:1; }
+.idx-pb-name{ font-weight:600; }
+.idx-pb-sub{ font-size:11px; font-weight:400; opacity:.55; margin-top:2px; line-height:1.3; }
+.idx-seg{ display:grid; gap:6px; padding:0 calc(12px * var(--dz-s,1)) 4px; }
+.idx-seg-6{ grid-template-columns:repeat(6,1fr); }
+.idx-seg-4,.idx-seg-q{ grid-template-columns:repeat(4,1fr); }
+.idx-seg .idx-pb-chip{ padding:10px 0; width:100%; box-sizing:border-box; text-align:center; font-size:.7rem; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .idx-pb-chip:active{ transform:scale(.96); }
+.idx-pb-chip.busy{ opacity:.55; pointer-events:none; }
+#indexSheetPanel .idx-detail-card.idx-pb-screen .idx-detail-header{ display:none; }
+#indexSheetPanel .idx-sheet-screen.idx-pb-wrap{ padding-left:0 !important; padding-right:0 !important; }
+#indexSheetPanel .idx-sheet-screen.idx-pb-wrap .idx-detail-card{ border-radius:0 !important; }
+#indexSheetPanel .idx-sheet-screen.idx-pb-wrap .idx-detail-body{ padding:0 0 calc(10px * var(--dz-s,1)) !important; }
 .idx-pb-chip.sel{ background:rgba(242,68,85,.16); color:#f24455; }
 .idx-auto-row .idx-sw.on::after{ transform:translateX(16px); }
 /* sharp corners (Save + menu sheets) */
@@ -1766,6 +1783,7 @@ function _idxSheetAdHTML(d, isOwner){
    DETAIL SCREEN — shared slide-in "why am I seeing this"
    ═══════════════════════════════════════════════════════ */
 function idxSheetShowDetail(title, bodyHtml){
+    var _c = document.querySelector('#indexSheetPanel .idx-detail-card'); if(_c){ _c.classList.remove('idx-pb-screen'); if(_c.parentNode) _c.parentNode.classList.remove('idx-pb-wrap'); }
     document.getElementById('idxDetailTitle').textContent = title;
     document.getElementById('idxDetailBody').innerHTML = bodyHtml;
     document.getElementById('indexSheetTrack').classList.add('show-detail');
@@ -2119,28 +2137,80 @@ function _idxAutoScrollRow(){
 }
 function _idxPlaybackRows(){
     if(!_idxInZeems()) return '';
+    if(typeof window.ccmPostKind === 'function' && window.ccmPostKind() === 'text') return '';   /* text posts have nothing to control */
     return '<div class="idx-sheet-item" onclick="idxOpenPlayback()"><i class="ri-play-circle-line"></i> Playback controls'
          + '<svg class="idx-pb-go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></div>';
 }
 var _IDX_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 function _idxSpeedLbl(s){ return s + 'x'; }
+function _idxPbToggle(icon, label, sub, fn, on){
+    return '<div class="idx-sheet-item idx-auto-row" onclick="idxTogglePB(this,\'' + fn + '\')"><i class="' + icon + '"></i>'
+         + '<span class="idx-pb-txt"><span class="idx-pb-name">' + label + '</span>' + (sub ? '<span class="idx-pb-sub">' + sub + '</span>' : '') + '</span>'
+         + '<span class="idx-sw' + (on ? ' on' : '') + '"></span></div>';
+}
+function _idxPbSeg(cls, items, cur, fn){
+    var h = '<div class="idx-seg ' + cls + '">';
+    items.forEach(function(o){ h += '<span class="idx-pid-copy idx-pb-chip' + (String(cur) === String(o[0]) ? ' sel' : '') + '" onclick="' + fn + '(' + o[0] + ',this)">' + o[1] + '</span>'; });
+    return h + '</div>';
+}
 function _idxPlaybackBody(){
-    var on = (typeof window.ccmAutoScrollIsOn === 'function') && window.ccmAutoScrollIsOn();
-    var cc = window.ccmCapsIsOn && window.ccmCapsIsOn();
-    var cur = window.ccmSpeedGet ? window.ccmSpeedGet() : 1;
+    var w = window, vid = (typeof w.ccmPostKind === 'function') && w.ccmPostKind() === 'video';
+    var on = (typeof w.ccmAutoScrollIsOn === 'function') && w.ccmAutoScrollIsOn();
+    var cur = w.ccmSpeedGet ? w.ccmSpeedGet() : 1, sl = w.ccmSleepGet ? w.ccmSleepGet() : 0;
     var h = '<div class="idx-pb-list">'
-        + '<div class="idx-sheet-item idx-auto-row" onclick="idxToggleAutoScrollPB(this)"><i class="ri-arrow-down-double-line"></i> Auto scroll<span class="idx-sw' + (on ? ' on' : '') + '"></span></div>'
-        + '<div class="idx-sheet-item idx-auto-row" onclick="idxToggleCaps(this)"><i class="ri-closed-captioning-line"></i> Closed captions<span class="idx-sw' + (cc ? ' on' : '') + '"></span></div>'
-        + '<div class="idx-sheet-item" onclick="idxFullView()"><i class="ri-fullscreen-line"></i> View full screen</div>'
-        + '<div class="idx-pb-label">Speed</div><div class="idx-pb-chips">';
-    _IDX_SPEEDS.forEach(function(sp){
-        h += '<span class="idx-pid-copy idx-pb-chip' + (sp === cur ? ' sel' : '') + '" onclick="idxPickSpeed(' + sp + ',this)">' + _idxSpeedLbl(sp) + '</span>';
-    });
-    return h + '</div></div>';
+        + '<div class="idx-pb-top"><button type="button" class="idx-pb-backbtn" aria-label="Back" onclick="idxSheetBackToList()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><span class="idx-pb-title">Playback controls</span></div>'
+        + '<div class="idx-pb-label">Playback</div>'
+        + '<div class="idx-pb-group">'
+        + _idxPbToggle('ri-arrow-down-double-line', 'Auto scroll', '', 'idxToggleAutoScrollPB', on).replace('idxTogglePB(this,\'idxToggleAutoScrollPB\')', 'idxToggleAutoScrollPB(this)');
+    if(vid){
+        h += _idxPbToggle('ri-repeat-line', 'Loop video', '', 'ccmLoopToggle', w.ccmLoopIsOn && w.ccmLoopIsOn())
+           + _idxPbToggle('ri-closed-captioning-line', 'Closed captions', '', 'idxCapsPB', w.ccmCapsIsOn && w.ccmCapsIsOn()).replace('idxTogglePB(this,\'idxCapsPB\')', 'idxToggleCaps(this)');
+    }
+    h += '<div class="idx-sheet-item" onclick="idxFullView()"><i class="ri-fullscreen-line"></i><span class="idx-pb-txt"><span class="idx-pb-name">View full screen</span></span>'
+       + '<svg class="idx-pb-go" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></div>'
+       + '</div>';
+    if(vid){
+        h += '<div class="idx-pb-label">Speed</div>' + _idxPbSeg('idx-seg-6', _IDX_SPEEDS.map(function(sp){ return [sp, _idxSpeedLbl(sp)]; }), cur, 'idxPickSpeed')
+           + '<div class="idx-pb-label idx-pb-qlabel" style="display:none">Quality</div><div class="idx-seg idx-seg-q idx-pb-qchips" style="display:none"></div>';
+    }
+    h += '<div class="idx-pb-label">Sleep timer<span class="idx-pb-hint">Stops auto scroll</span></div>' + _idxPbSeg('idx-seg-4', [[0, 'Off'], [15, '15 min'], [30, '30 min'], [60, '60 min']], sl, 'idxPickSleep');
+    if(vid){
+        h += '<div class="idx-pb-label">Preferences</div>'
+           + '<div class="idx-pb-group">'
+           + _idxPbToggle('ri-save-3-line', 'Remember my settings', 'Keep speed and quality on every post', 'ccmRememberToggle', w.ccmRememberIsOn && w.ccmRememberIsOn())
+           + _idxPbToggle('ri-wifi-off-line', 'Data saver', 'Start videos at 360p on mobile data', 'ccmSaverToggle', w.ccmSaverIsOn && w.ccmSaverIsOn())
+           + '</div>';
+    }
+    return h + '</div>';
 }
 function idxOpenPlayback(){
     if(window.dzHaptic) dzHaptic.light();
     idxSheetShowDetail('Playback controls', _idxPlaybackBody());
+    var card = document.querySelector('#indexSheetPanel .idx-detail-card'); if(card){ card.classList.add('idx-pb-screen'); if(card.parentNode) card.parentNode.classList.add('idx-pb-wrap'); }
+    _idxFillQuality();
+}
+/* media quality: the list of strengths comes from the server (only ones at or below the video's own size) */
+function _idxFillQuality(){
+    var box = document.querySelector('#idxDetailBody .idx-pb-qchips'), lab = document.querySelector('#idxDetailBody .idx-pb-qlabel');
+    if(!box || typeof window.ccmQualityInfo !== 'function' || !(window.ccmHasVideo && window.ccmHasVideo())) return;
+    window.ccmQualityInfo(function(info, cur){
+        if(!info || !info.options || !info.options.length) return;
+        var h = '';
+        info.options.forEach(function(q){ h += '<span class="idx-pid-copy idx-pb-chip' + (String(cur) === String(q) ? ' sel' : '') + '" onclick="idxPickQuality(\'' + q + '\',this)">' + q + 'p</span>'; });
+        h += '<span class="idx-pid-copy idx-pb-chip' + (cur === 'orig' ? ' sel' : '') + '" onclick="idxPickQuality(\'orig\',this)">Original</span>';
+        box.innerHTML = h; box.style.display = '';
+        if(lab){ lab.innerHTML = 'Quality<span class="idx-pb-hint">Original is ' + info.short + 'p</span>'; lab.style.display = ''; }
+    });
+}
+function idxPickQuality(q, el){
+    if(el.classList.contains('busy')) return;
+    var chips = el.parentNode.querySelectorAll('.idx-pb-chip'), old = el.textContent;
+    el.classList.add('busy'); el.textContent = '...';
+    window.ccmQualitySet(q, function(ok){
+        el.classList.remove('busy'); el.textContent = old;
+        if(!ok){ if(typeof ccmToast === 'function') ccmToast('That quality is not available'); return; }
+        for(var i = 0; i < chips.length; i++) chips[i].classList.toggle('sel', chips[i] === el);
+    });
 }
 function idxToggleAutoScrollPB(row){
     if(typeof window.ccmAutoScrollSet !== 'function') return;
@@ -2790,18 +2860,31 @@ document.addEventListener('keydown', function(e){
         setTimeout(function () { _openScreen('dzReportOverlay'); }, 80);
     };
 
+    /* what kind of content is being reported — drives the wording of the reason screen (and the Post ID box, which only makes sense for posts) */
+    function _rptKind(ct) {
+        var m = {
+            meme:            { label: 'post',            idLabel: 'Post ID' },
+            highlight:       { label: 'highlight',       idLabel: '' },
+            group_highlight: { label: 'pod highlight',   idLabel: '' },
+            longform:        { label: 'longform video',  idLabel: '' },
+            comment:         { label: 'comment',         idLabel: '' }
+        };
+        return m[ct] || { label: 'content', idLabel: 'Post ID' };
+    }
+
     function _buildReasonScreen(cat) {
         var reasons = cat === 'user' ? _userReasons : _contentReasons;
         var titles = {
             user:    'Why are you reporting this user?',
             content: 'Why are you reporting this content?'
         };
+        if (cat === 'content') titles.content = 'Why are you reporting this ' + _rptKind(_rState.contentType).label + '?';
         document.getElementById('dzRptTitle').textContent = titles[cat] || 'Select a reason';
 
         var uidWrap = document.getElementById('dzRptUserIdWrap');
         if (uidWrap) uidWrap.style.display = cat === 'user' ? 'block' : 'none';
         var pidWrap = document.getElementById('dzRptPostIdWrap');
-        if (pidWrap) pidWrap.style.display = cat === 'content' ? 'block' : 'none';
+        if (pidWrap) pidWrap.style.display = (cat === 'content' && _rptKind(_rState.contentType).idLabel) ? 'block' : 'none';   /* highlights / longform videos are identified automatically */
 
         _rState.reason = null;
         document.getElementById('dzRptOtherWrap').style.display = 'none';
@@ -2888,13 +2971,13 @@ document.addEventListener('keydown', function(e){
             var uid = (document.getElementById('dzRptUserIdInput').value || '').trim();
             if (uid) fd.append('user_id_hint', uid);
         } else {
-            endpoint = 'report_content.php';
+            endpoint = ['highlight','group_highlight','longform'].indexOf(_rState.contentType) >= 0 ? 'report_media.php' : 'report_content.php';   /* these three live in their own tables */
             fd.append('reported_id', _rState.targetId);
             fd.append('content_type', _rState.contentType || 'meme');
         }
         fd.append('reason', _rState.reason);
         var desc = (document.getElementById('dzRptOtherInput').value || '').trim();
-        if (cat !== 'user'){
+        if (cat !== 'user' && _rptKind(_rState.contentType).idLabel){
             var postHint = ((document.getElementById('dzRptPostIdInput') || {}).value || '').trim().toUpperCase();
             if (postHint){
                 fd.append('post_id_hint', postHint);

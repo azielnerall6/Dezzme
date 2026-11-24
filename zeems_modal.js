@@ -2657,7 +2657,7 @@ function _ccmZoomEnter(z) {
     b.className = "ccm-unzoom-btn";
     b.setAttribute("aria-label", "Zoom out");
     b.innerHTML =
-      '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.8"/><path d="M15.5 15.5L20.5 20.5M7.5 10.5h6"/></svg>';
+      '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>';
     ["touchstart", "touchend", "pointerdown", "mousedown"].forEach(
       function (ev) {
         b.addEventListener(ev, function (e) {
@@ -2714,12 +2714,13 @@ function ccmZoomReset(animate) {
     setTimeout(done, 360);
   } else done();
 }
+/* PINCH = "view full screen": the picture swells a touch under the fingers and everything else fades in step with them;
+   let go past halfway and the page settles into full-screen view, otherwise it all springs back. Pinch in to leave. */
 (function () {
   var stage = document.getElementById("ccm-stage");
   if (!stage) return;
-  var ctl = function (t) {
-    return t && t.closest && t.closest(".ccm-video-progress, .ccm-unzoom-btn");
-  };
+  var g = null,
+    tidy = null;
   function mid(t) {
     return {
       x: (t[0].clientX + t[1].clientX) / 2,
@@ -2727,139 +2728,97 @@ function ccmZoomReset(animate) {
       d: Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY),
     };
   }
+  function clamp(v, lo, hi) {
+    return Math.max(lo, Math.min(hi, v));
+  }
+  function modal() {
+    return document.getElementById("cardCaptionModal");
+  }
+  function clean(el, m) {
+    if (el) {
+      el.style.transition = "";
+      el.style.scale = "";
+      el.classList.remove("ccm-zooming");
+    }
+    if (m) {
+      m.classList.remove("ccm-peeking", "ccm-peek-settle");
+      m.style.removeProperty("--ccm-peek");
+    }
+  }
   stage.addEventListener(
     "touchstart",
     function (e) {
-      if (_ccmZ && !_ccmZ.el.isConnected) ccmZoomReset(false);
-      if (e.touches.length >= 2) {
-        var m = mid(e.touches),
-          z = _ccmZ;
-        if (!z) {
-          var el = _ccmZoomEl(m.x, m.y);
-          if (!el) return;
-          var r = el.getBoundingClientRect();
-          z = _ccmZ = {
-            el: el,
-            base: {
-              left: r.left,
-              top: r.top,
-              w: r.width,
-              h: r.height,
-              ox: r.left + r.width / 2,
-              oy: r.top + r.height / 2,
-            },
-            s: 1,
-            tx: 0,
-            ty: 0,
-          };
-        }
-        var _wasV = window._ccmVDragState
-          ? window._ccmVDragState()
-          : false; /* cancel any swipe the first finger had begun … */
-        if (_wasV)
-          _ccmSettleSwipe(); /* … and put the post back exactly where it was */
-        _ccmZoomEnter(z);
-        _ccmZg = {
-          mode: "pinch",
-          d0: m.d || 1,
-          s0: z.s,
-          u: z.base.ox + (m.x - z.base.ox - z.tx) / z.s,
-          v: z.base.oy + (m.y - z.base.oy - z.ty) / z.s,
-        };
-        e.preventDefault();
-        e.stopPropagation();
-      } else if (
-        e.touches.length === 1 &&
-        _ccmZ &&
-        _ccmZ.s > 1.02 &&
-        !ctl(e.target)
-      ) {
-        var t0 = e.touches[0];
-        _ccmZg = {
-          mode: "pan",
-          x0: t0.clientX,
-          y0: t0.clientY,
-          tx0: _ccmZ.tx,
-          ty0: _ccmZ.ty,
-        };
-        e.preventDefault();
-        e.stopPropagation();
+      if (e.touches.length < 2 || g) return;
+      var m = modal();
+      if (!m) return;
+      var mm = mid(e.touches),
+        el = _ccmZoomEl(mm.x, mm.y);
+      if (!el) return;
+      if (tidy) {
+        clearTimeout(tidy);
+        tidy = null;
       }
+      if (window._ccmVDragState && window._ccmVDragState())
+        _ccmSettleSwipe(); /* a swipe the first finger began is put back */
+      var fs = m.classList.contains("ccm-fsview");
+      g = { el: el, d0: mm.d || 1, fs: fs, p: fs ? 1 : 0 };
+      m.classList.remove("ccm-peek-settle");
+      m.classList.add("ccm-peeking");
+      m.style.setProperty("--ccm-peek", String(g.p));
+      e.preventDefault();
+      e.stopPropagation();
     },
     { capture: true, passive: false },
   );
   stage.addEventListener(
     "touchmove",
     function (e) {
-      var z = _ccmZ,
-        g = _ccmZg;
-      if (!z || !g) return;
+      if (!g) return;
       e.preventDefault();
       e.stopPropagation();
-      if (g.mode === "pinch" && e.touches.length >= 2) {
-        var m = mid(e.touches);
-        z.s = Math.max(0.75, Math.min(5, (g.s0 * m.d) / g.d0));
-        z.tx =
-          m.x -
-          z.base.ox -
-          z.s *
-            (g.u -
-              z.base
-                .ox); /* keeps the spot between the fingers under the fingers */
-        z.ty = m.y - z.base.oy - z.s * (g.v - z.base.oy);
-        _ccmZoomClamp(z);
-        _ccmZoomApply(z, false);
-      } else if (g.mode === "pan" && e.touches.length === 1) {
-        z.tx = g.tx0 + (e.touches[0].clientX - g.x0);
-        z.ty = g.ty0 + (e.touches[0].clientY - g.y0);
-        _ccmZoomClamp(z);
-        _ccmZoomApply(z, false);
-      }
+      if (e.touches.length < 2) return;
+      var ratio =
+        mid(e.touches).d /
+        g.d0; /* the picture itself never scales: only the surroundings fade */
+      g.p = g.fs
+        ? 1 - clamp((1 - ratio) / 0.25, 0, 1)
+        : clamp((ratio - 1) / 0.5, 0, 1);
+      var m = modal();
+      if (m) m.style.setProperty("--ccm-peek", String(g.p));
     },
     { capture: true, passive: false },
   );
   function end(e) {
-    var z = _ccmZ,
-      g = _ccmZg;
-    if (!z || !g) return;
+    if (!g) return;
     e.preventDefault();
     e.stopPropagation();
-    if (e.touches.length === 1 && g.mode === "pinch") {
-      /* one finger lifted: carry on by dragging with the other */
-      var t0 = e.touches[0];
-      _ccmZg = {
-        mode: "pan",
-        x0: t0.clientX,
-        y0: t0.clientY,
-        tx0: z.tx,
-        ty0: z.ty,
-      };
-      return;
-    }
     if (e.touches.length > 0) return;
-    _ccmZg = null;
-    if (z.s < 1.04) ccmZoomReset(true); /* barely zoomed → just settle back */
-    else {
-      _ccmZoomClamp(z);
-      _ccmZoomApply(z, true);
-    } /* stays zoomed until the button (or a pinch back out) */
+    var st = g,
+      m = modal();
+    g = null;
+    var commit = st.fs ? st.p < 0.5 : st.p >= 0.5;
+    var hidden = st.fs ? (commit ? 0 : 1) : commit ? 1 : 0;
+    if (m) {
+      m.classList.add("ccm-peek-settle");
+      m.style.setProperty("--ccm-peek", String(hidden));
+    }
+    if (commit) {
+      if (st.fs) {
+        if (typeof window.ccmFsViewExit === "function") window.ccmFsViewExit();
+      } else if (typeof window.ccmFsViewEnter === "function")
+        window.ccmFsViewEnter();
+      if (window.dzHaptic && dzHaptic.light)
+        try {
+          dzHaptic.light();
+        } catch (x) {}
+    }
+    tidy = setTimeout(function () {
+      tidy = null;
+      clean(st.el, m);
+    }, 320);
   }
   stage.addEventListener("touchend", end, { capture: true, passive: false });
   stage.addEventListener("touchcancel", end, { capture: true, passive: false });
-  setInterval(function () {
-    if (_ccmZ && (!_ccmZ.el.isConnected || !_ccmZ.el.getClientRects().length))
-      ccmZoomReset(false);
-  }, 800);
-  /* if anything wipes the zoom off the picture while the page is still in its zoomed state, put it back so picture and page never disagree */
-  setInterval(function () {
-    var z = _ccmZ;
-    if (!z || _ccmZg || z.s <= 1.04 || !z.el.isConnected) return;
-    if (
-      z.el.style.scale !== String(z.s) ||
-      z.el.style.translate !== z.tx + "px " + z.ty + "px"
-    )
-      _ccmZoomApply(z, false);
-  }, 200);
 })();
 
 /* ══ LANDSCAPE FULL-SCREEN ══ */
@@ -10021,6 +9980,26 @@ function ccmOpenComments(postId) {
     if (SPEEDS.indexOf(s) > -1) speed = s;
     caps = localStorage.getItem("dz_ccm_caps") === "1";
   } catch (e) {}
+  /* extra playback settings (kept in this browser, so they apply on every page that has Zeems) */
+  var remember = true,
+    loopOn = true,
+    saver = false,
+    savedQ = "",
+    sleepMin = 0,
+    sleepEnd = 0;
+  try {
+    remember = localStorage.getItem("dz_ccm_remember") !== "0";
+    loopOn = localStorage.getItem("dz_ccm_loop") !== "0";
+    saver = localStorage.getItem("dz_ccm_saver") === "1";
+    savedQ = localStorage.getItem("dz_ccm_q") || "";
+    sleepMin = +localStorage.getItem("dz_ccm_sleep_min") || 0;
+    sleepEnd = +localStorage.getItem("dz_ccm_sleep_end") || 0;
+  } catch (e) {}
+  function sv(k, v) {
+    try {
+      localStorage.setItem(k, v);
+    } catch (e) {}
+  }
   function vids() {
     return document.querySelectorAll("#cardCaptionModal video");
   }
@@ -10040,9 +10019,14 @@ function ccmOpenComments(postId) {
     }
     return false;
   }
+  function rateOf(v) {
+    return remember ? speed : parseFloat(v.dataset.spd) || 1;
+  }
   function apply(v) {
     try {
-      if (v.playbackRate !== speed) v.playbackRate = speed;
+      var r = rateOf(v);
+      if (v.playbackRate !== r) v.playbackRate = r;
+      if (v.loop !== loopOn) v.loop = loopOn;
       applyCaps(v);
     } catch (e) {}
   }
@@ -10052,21 +10036,43 @@ function ccmOpenComments(postId) {
       function (e) {
         var v = e.target;
         if (
-          v &&
-          v.tagName === "VIDEO" &&
-          v.closest &&
-          v.closest("#cardCaptionModal")
+          !(
+            v &&
+            v.tagName === "VIDEO" &&
+            v.closest &&
+            v.closest("#cardCaptionModal")
+          )
         )
-          apply(v);
+          return;
+        apply(v);
+        if (ev === "playing") autoQuality(v);
       },
       true,
     );
   });
+  /* what the post on screen is: 'video', 'image' (also gif / sticker) or 'text' */
+  window.ccmPostKind = function () {
+    var box = document.querySelector("#ccm-slide #ccm-media-box");
+    if (!box) return "text";
+    var items = box.querySelectorAll(".ccm-media-item");
+    if (!items.length) return "text";
+    var act =
+      typeof _ccmMediaIndex !== "undefined"
+        ? box.querySelector(
+            '.ccm-media-item[data-idx="' + _ccmMediaIndex + '"]',
+          )
+        : null;
+    return (act || items[0]).getAttribute("data-type") === "video"
+      ? "video"
+      : "image";
+  };
   window.ccmHasVideo = function () {
-    return !!document.querySelector("#ccm-slide video.ccm-media");
+    return window.ccmPostKind() === "video";
   };
   window.ccmSpeedGet = function () {
-    return speed;
+    if (remember) return speed;
+    var v = activeVid();
+    return v ? rateOf(v) : 1;
   };
   window.ccmSpeedCycle = function () {
     speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
@@ -10076,6 +10082,186 @@ function ccmOpenComments(postId) {
     vids().forEach(apply);
     return speed;
   };
+  window.ccmSpeedSet = function (v) {
+    if (SPEEDS.indexOf(v) < 0) return speed;
+    if (remember) {
+      speed = v;
+      sv("dz_ccm_speed", String(speed));
+      vids().forEach(apply);
+    } else {
+      var a = activeVid();
+      if (a) {
+        a.dataset.spd = String(v);
+        apply(a);
+      }
+    }
+    return v;
+  };
+  /* media quality: swap the playing video for a smaller copy made on the server (cached after the first time) */
+  function activeVid() {
+    var slide = document.getElementById("ccm-slide");
+    if (!slide) return null;
+    var box = slide.querySelector("#ccm-media-box");
+    if (!box) return null;
+    var act =
+      typeof _ccmMediaIndex !== "undefined"
+        ? box.querySelector(
+            '.ccm-media-item[data-idx="' + _ccmMediaIndex + '"]',
+          )
+        : null;
+    return (
+      (act ? act.querySelector("video.ccm-media") : null) ||
+      box.querySelector("video.ccm-media")
+    );
+  }
+  function qget(params, cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "video_quality.php?" + params, true);
+    xhr.timeout = 300000;
+    xhr.onload = function () {
+      var j = null;
+      try {
+        j = JSON.parse(xhr.responseText);
+      } catch (e) {}
+      cb(j && j.ok ? j : null);
+    };
+    xhr.onerror = xhr.ontimeout = function () {
+      cb(null);
+    };
+    xhr.send();
+  }
+  function origOf(v) {
+    if (!v.dataset.origSrc) v.dataset.origSrc = v.getAttribute("src") || "";
+    return v.dataset.origSrc;
+  }
+  function swapTo(v, url, q) {
+    var t = v.currentTime || 0,
+      wasPaused = v.paused;
+    v.addEventListener("loadedmetadata", function f() {
+      v.removeEventListener("loadedmetadata", f);
+      try {
+        v.currentTime = t;
+      } catch (e) {}
+      if (!wasPaused) {
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+      }
+    });
+    v.src = url;
+    v.dataset.q = String(q);
+  }
+  function saverActive() {
+    if (!saver) return false;
+    var c = navigator.connection;
+    if (c && c.saveData) return true;
+    if (c && c.type) return c.type === "cellular";
+    return (
+      window.innerWidth <= 790
+    ); /* browsers that cannot tell (iPhone) count as mobile data */
+  }
+  /* a new video starts at the remembered strength, or at 360p when data saver is on */
+  function autoQuality(v) {
+    if (v.dataset.qTried || v.dataset.q || v !== activeVid()) return;
+    var t = 0;
+    if (remember && savedQ && savedQ !== "orig") t = +savedQ;
+    if (saverActive() && (!t || t > 360)) t = 360;
+    if (!t) return;
+    v.dataset.qTried = "1";
+    var src = origOf(v);
+    qget("a=make&h=" + t + "&src=" + encodeURIComponent(src), function (j) {
+      if (j && j.url && v.isConnected && !v.dataset.q && origOf(v) === src)
+        swapTo(v, j.url, t);
+    });
+  }
+  window.ccmQualityInfo = function (cb) {
+    var v = activeVid();
+    if (!v) return cb(null);
+    qget("a=info&src=" + encodeURIComponent(origOf(v)), function (j) {
+      cb(j, v.dataset.q || "orig");
+    });
+  };
+  window.ccmQualitySet = function (q, cb) {
+    var v = activeVid();
+    if (!v) return cb(false);
+    var src = origOf(v);
+    v.dataset.qTried = "1";
+    if (remember) (sv("dz_ccm_q", String(q)), (savedQ = String(q)));
+    if (q === "orig") {
+      if (v.dataset.q && v.dataset.q !== "orig") {
+        swapTo(v, src, "orig");
+      }
+      cb(true);
+      return;
+    }
+    qget(
+      "a=make&h=" + encodeURIComponent(q) + "&src=" + encodeURIComponent(src),
+      function (j) {
+        if (j && j.url) {
+          swapTo(v, j.url, q);
+          cb(true);
+        } else cb(false);
+      },
+    );
+  };
+  window.ccmLoopIsOn = function () {
+    return loopOn;
+  };
+  window.ccmLoopToggle = function () {
+    loopOn = !loopOn;
+    sv("dz_ccm_loop", loopOn ? "1" : "0");
+    vids().forEach(apply);
+    return loopOn;
+  };
+  window.ccmRememberIsOn = function () {
+    return remember;
+  };
+  window.ccmRememberToggle = function () {
+    remember = !remember;
+    sv("dz_ccm_remember", remember ? "1" : "0");
+    if (!remember) {
+      var a = activeVid();
+      if (a) a.dataset.spd = String(speed);
+    } /* this post keeps what it has now */
+    vids().forEach(apply);
+    return remember;
+  };
+  window.ccmSaverIsOn = function () {
+    return saver;
+  };
+  window.ccmSaverToggle = function () {
+    saver = !saver;
+    sv("dz_ccm_saver", saver ? "1" : "0");
+    var a = activeVid();
+    if (a && saver) autoQuality(a);
+    return saver;
+  };
+  /* sleep timer: stops auto scroll after the chosen minutes (works across pages: the end time is saved) */
+  window.ccmSleepGet = function () {
+    return sleepEnd > Date.now() ? sleepMin : 0;
+  };
+  window.ccmSleepSet = function (m) {
+    m = +m || 0;
+    sleepMin = m;
+    sleepEnd = m ? Date.now() + m * 60000 : 0;
+    sv("dz_ccm_sleep_min", String(sleepMin));
+    sv("dz_ccm_sleep_end", String(sleepEnd));
+    if (typeof ccmToast === "function")
+      ccmToast(
+        m ? "Auto scroll will stop in " + m + " min" : "Sleep timer off",
+      );
+  };
+  setInterval(function () {
+    if (!sleepEnd || Date.now() < sleepEnd) return;
+    sleepEnd = 0;
+    sleepMin = 0;
+    sv("dz_ccm_sleep_min", "0");
+    sv("dz_ccm_sleep_end", "0");
+    if (
+      typeof window.ccmAutoScrollIsOn === "function" &&
+      window.ccmAutoScrollIsOn()
+    )
+      window.ccmAutoScrollSet(false);
+  }, 3000);
   window.ccmCapsIsOn = function () {
     return caps;
   };
@@ -10124,7 +10310,7 @@ function ccmOpenComments(postId) {
     b.className = "ccm-unzoom-btn ccm-fsx";
     b.setAttribute("aria-label", "Exit full screen view");
     b.innerHTML =
-      '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.8"/><path d="M15.5 15.5L20.5 20.5M7.5 10.5h6"/></svg>';
+      '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>';
     ["touchstart", "touchend", "pointerdown", "mousedown"].forEach(
       function (ev) {
         b.addEventListener(ev, function (e) {

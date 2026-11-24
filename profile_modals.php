@@ -1586,6 +1586,8 @@ function _ipvHeroOpen(memeId){
     ov.style.transition = 'none';
     var sr = ov.getBoundingClientRect(); if(!sr.width || !sr.height){ ov.style.transition = ''; return; }
     var g = _ipvHeroGeom(sr, cr);
+    /* never any rounded corners while the viewer opens (photo or video): the growing box is a plain rectangle */
+    g.r = 0;
     _ipvHeroHide(card); _ipvHeroBusy = true;
     ov.style.willChange = 'transform, clip-path';
     var a = ov.animate([
@@ -8889,6 +8891,14 @@ dzLazyJs('dzLzRpt',['closeReportModal','dzRptBack','dzRptCharCount','dzRptSelect
             _rState.direct   = true;   /* no picker behind this screen */
             _buildReasonScreen('user');
             _openScreen('dzRptStep1Screen');
+        } else if (opts.contentId) {
+            /* opened straight against a piece of content (highlight, longform video, post…): go to its own reason screen */
+            _rState.category    = 'content';
+            _rState.targetId    = opts.contentId;
+            _rState.contentType = opts.contentType || 'meme';
+            _rState.direct      = true;
+            _buildReasonScreen('content');
+            _openScreen('dzRptStep1Screen');
         } else {
             _rState.direct = false;
             _openScreen('dzReportOverlay');
@@ -8918,6 +8928,18 @@ dzLazyJs('dzLzRpt',['closeReportModal','dzRptBack','dzRptCharCount','dzRptSelect
         setTimeout(function () { _openScreen('dzReportOverlay'); }, 80);
     };
 
+    /* what kind of content is being reported — drives the wording of the reason screen (and the Post ID box, which only makes sense for posts) */
+    function _rptKind(ct) {
+        var m = {
+            meme:            { label: 'post',            idLabel: 'Post ID' },
+            highlight:       { label: 'highlight',       idLabel: '' },
+            group_highlight: { label: 'pod highlight',   idLabel: '' },
+            longform:        { label: 'longform video',  idLabel: '' },
+            comment:         { label: 'comment',         idLabel: '' }
+        };
+        return m[ct] || { label: 'content', idLabel: 'Post ID' };
+    }
+
     function _buildReasonScreen(cat) {
         var reasons = cat === 'user' ? _userReasons
                     : cat === 'content' ? _contentReasons
@@ -8927,12 +8949,13 @@ dzLazyJs('dzLzRpt',['closeReportModal','dzRptBack','dzRptCharCount','dzRptSelect
             content: 'Why are you reporting this content?',
             message: 'Why are you reporting this message?'
         };
+        if (cat === 'content') titles.content = 'Why are you reporting this ' + _rptKind(_rState.contentType).label + '?';
         document.getElementById('dzRptTitle').textContent    = titles[cat] || 'Select a reason';
 
         var uidWrap = document.getElementById('dzRptUserIdWrap');
         if (uidWrap) uidWrap.style.display = cat === 'user' ? 'block' : 'none';
         var pidWrap = document.getElementById('dzRptPostIdWrap');
-        if (pidWrap) pidWrap.style.display = cat === 'content' ? 'block' : 'none';
+        if (pidWrap) pidWrap.style.display = (cat === 'content' && _rptKind(_rState.contentType).idLabel) ? 'block' : 'none';   /* highlights / longform videos are identified automatically */
 
         _rState.reason = null;
         document.getElementById('dzRptOtherWrap').style.display = 'none';
@@ -9026,7 +9049,7 @@ dzLazyJs('dzLzRpt',['closeReportModal','dzRptBack','dzRptCharCount','dzRptSelect
         }
         fd.append('reason', _rState.reason);
         var desc = (document.getElementById('dzRptOtherInput').value || '').trim();
-        if (cat === 'content'){
+        if (cat === 'content' && _rptKind(_rState.contentType).idLabel){
             var postHint = ((document.getElementById('dzRptPostIdInput') || {}).value || '').trim().toUpperCase();
             if (postHint){
                 fd.append('post_id_hint', postHint);
@@ -9036,7 +9059,9 @@ dzLazyJs('dzLzRpt',['closeReportModal','dzRptBack','dzRptCharCount','dzRptSelect
         }
         if (desc) fd.append('description', desc);
 
-        fetch('report_user.php', { method: 'POST', body: fd })
+        /* highlights, pod highlights and longform videos live in their own tables: report_media.php handles them */
+        var rptUrl = (cat === 'content' && ['highlight','group_highlight','longform'].indexOf(_rState.contentType) >= 0) ? 'report_media.php' : 'report_user.php';
+        fetch(rptUrl, { method: 'POST', body: fd })
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 btn.disabled = false; btn.textContent = 'Submit Report';
