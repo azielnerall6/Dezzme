@@ -8,13 +8,7 @@
 <title>Dezztext | Text feed</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-<script>/* only http(s) / relative links are allowed for user-supplied URLs (blocks javascript: and data: links) */
-window.dzSafeUrl = function(u){ u=String(u==null?'':u).trim(); if(/^(https?:)?\/\//i.test(u)) return u; if(/^[a-z][a-z0-9+.\-]*:/i.test(u)) return '#'; return u; };</script>
 <style>
-/* mute / unmute icon (custom speaker) */
-.dz-snd{display:inline-block;width:1.12em;height:1em;background-color:currentColor;-webkit-mask:var(--dz-snd) center/contain no-repeat;mask:var(--dz-snd) center/contain no-repeat;vertical-align:middle;font-style:normal}
-.dz-snd.on{--dz-snd:url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%22261%20218%20681%20603%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M576.2%2C820.0C560.6%2C817.2%20551.8%2C812.4%20515.6%2C787.7C500.1%2C777.2%20474.4%2C759.8%20458.5%2C749.0C442.6%2C738.3%20425.4%2C726.5%20420.5%2C722.9C415.6%2C719.3%20405.2%2C712.2%20397.5%2C707.0C381.1%2C696.0%20346.4%2C671.6%20333.5%2C661.9C314.1%2C647.4%20292.3%2C621.5%20281.6%2C600.2C258.9%2C555.2%20255.1%2C512.3%20270.0%2C467.9C277.7%2C444.5%20282.6%2C435.5%20299.8%2C412.0C309.3%2C399.1%20335.0%2C374.5%20346.8%2C367.0C365.5%2C355.1%20391.4%2C337.8%20401.0%2C330.6C412.7%2C322.0%20438.1%2C304.3%20460.9%2C289.0C470.3%2C282.7%20487.8%2C270.8%20499.8%2C262.6C559.6%2C221.4%20567.2%2C217.6%20589.5%2C217.6C628.4%2C217.6%20651.1%2C243.1%20654.0%2C290.0C655.3%2C310.7%20655.3%2C742.7%20654.0%2C756.0C649.5%2C802.0%20618.5%2C827.6%20576.2%2C820.0ZM747.9%2C729.0C732.2%2C726.4%20723.6%2C712.1%20725.3%2C691.7C727.0%2C671.8%20735.1%2C664.0%20760.3%2C658.0C794.4%2C649.8%20822.2%2C631.8%20843.7%2C603.9C862.9%2C578.9%20876.0%2C533.5%20872.1%2C504.8C869.5%2C485.1%20856.5%2C452.0%20846.5%2C439.5C819.9%2C406.3%20796.9%2C390.9%20760.7%2C382.0C736.8%2C376.1%20727.9%2C367.8%20724.9%2C348.7C721.1%2C324.7%20735.0%2C309.3%20758.5%2C311.4C807.1%2C315.8%20864.9%2C348.4%20895.2%2C388.5C915.9%2C416.0%20920.6%2C425.4%20936.6%2C471.0C943.6%2C491.1%20944.3%2C540.8%20938.0%2C565.7C923.1%2C623.6%20884.6%2C673.9%20832.7%2C702.9C803.4%2C719.3%20763.6%2C731.6%20747.9%2C729.0ZM738.0%2C584.8C732.1%2C581.6%20727.6%2C574.3%20726.0%2C565.2C724.3%2C556.1%20724.4%2C479.3%20726.1%2C472.4C737.4%2C425.3%20805.6%2C472.9%20801.7%2C525.2C799.0%2C559.4%20759.6%2C596.3%20738.0%2C584.8Z%22%2F%3E%3C%2Fsvg%3E)}
-.dz-snd.off{--dz-snd:url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%22261%20218%20681%20603%22%3E%3Cpath%20d%3D%22M576.2%2C820.0C560.6%2C817.2%20551.8%2C812.4%20515.6%2C787.7C500.1%2C777.2%20474.4%2C759.8%20458.5%2C749.0C442.6%2C738.3%20425.4%2C726.5%20420.5%2C722.9C415.6%2C719.3%20405.2%2C712.2%20397.5%2C707.0C381.1%2C696.0%20346.4%2C671.6%20333.5%2C661.9C314.1%2C647.4%20292.3%2C621.5%20281.6%2C600.2C258.9%2C555.2%20255.1%2C512.3%20270.0%2C467.9C277.7%2C444.5%20282.6%2C435.5%20299.8%2C412.0C309.3%2C399.1%20335.0%2C374.5%20346.8%2C367.0C365.5%2C355.1%20391.4%2C337.8%20401.0%2C330.6C412.7%2C322.0%20438.1%2C304.3%20460.9%2C289.0C470.3%2C282.7%20487.8%2C270.8%20499.8%2C262.6C559.6%2C221.4%20567.2%2C217.6%20589.5%2C217.6C628.4%2C217.6%20651.1%2C243.1%20654.0%2C290.0C655.3%2C310.7%20655.3%2C742.7%20654.0%2C756.0C649.5%2C802.0%20618.5%2C827.6%20576.2%2C820.0Z%22%2F%3E%3Cpath%20d%3D%22M730%20400L910%20620M910%20400L730%20620%22%20stroke%3D%22%23000%22%20stroke-width%3D%2264%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E)}
 /* post collaboration: ONE poster-sized box, pictures shrink as people join (2 = diagonal, 3 = trio) — same as the Zeems modal */
 .av-wrap.ipv-collab{position:relative;display:block;flex:none;width:var(--cw,46px);height:var(--cw,46px)}
 .av-wrap.ipv-collab .on-dot{display:none}
@@ -230,16 +224,18 @@ if ('serviceWorker' in navigator) {
 .hp-topbar .hft-title,html[data-theme="light"] .hp-topbar .hft-title{font-family:'Bebas Neue',sans-serif !important;font-weight:400 !important;color:#E03C3C !important;font-size:clamp(24px,6.5vw,32px) !important;letter-spacing:clamp(5px,1.8vw,8px) !important;line-height:1 !important;padding-left:clamp(5px,1.8vw,8px) !important;text-transform:none}
 @media (max-width:768px){.hp-topbar .hft-title,html[data-theme="light"] .hp-topbar .hft-title{font-size:clamp(24px,6.8vw,31px) !important}}
 .hp-topbar .hft-title.hft-title-r{ padding-left:0 !important; margin-right:calc(-1 * clamp(5px,1.8vw,8px)) !important; }
-/* post media box — same mechanics as the immersive post viewer (profile): fixed box, slides fill it, multi-photo slides fit inside */
-#ipvList .ipv-media-wrap:not(.ipv-textonly){position:relative;width:100%;background:#000;overflow:hidden;aspect-ratio:4/4.2;transition:height .18s ease;touch-action:pan-y}
-#ipvList .ipv-media-wrap.ipv-multi:not(.ipv-textonly){aspect-ratio:4/3.5}
-#ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-track{display:flex;height:100%;transition:transform .28s cubic-bezier(.22,1,.36,1);will-change:transform}
-#ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-item{flex:0 0 100%;min-width:0;height:100%;position:relative;background:#000}
-#ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-item img,#ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-item video{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
-#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item{display:flex;align-items:center;justify-content:center}
 /* multi-photo posts: same fit as the immersive viewer — whole picture inside the box (black bars), only near-box-shaped pictures fill it */
-#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item img:not(.ipv-fit-cover),#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item video:not(.ipv-fit-cover){object-fit:contain !important;background:#000}
+/* ad button: a full-width bar under the picture (same as home) */
+.ipv-post .ipv-cta-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box;width:100%;min-height:44px;padding:0 16px;background:var(--cta-color,#FF4C4C);color:var(--cta-ink,#fff);text-decoration:none;font-weight:600;font-size:14px;line-height:1.2;-webkit-tap-highlight-color:transparent;transition:filter .15s ease}
+.ipv-post .ipv-cta-bar:active{filter:brightness(.92)}
+.ipv-post .ipv-cta-bar-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ipv-post .ipv-cta-bar svg{flex:none}
+#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item img,#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item video{object-fit:contain !important;background:#000}
 #ipvList .ipv-media-wrap.ipv-multi .ipv-media-item img.ipv-fit-cover,#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item video.ipv-fit-cover{object-fit:cover !important}
+/* the picture fills its slide by absolute position (not percentage height) so every browser, iPhone included, centres it the same */
+#ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-track{position:absolute;top:0;left:0;right:0;bottom:0;height:auto}
+#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item{align-self:stretch;height:auto;position:relative}
+#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item img,#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item video{position:absolute;top:0;left:0;width:100%;height:100%;object-position:center center}
 </style>
 <!-- Dezzme verified flower + NEW word: same design/placement as the immersive modal -->
 <style id="dz-vbnew-css">
@@ -269,10 +265,10 @@ window.dzAdTag=function(p,isNew){
 })();
 </script>
 <style id="dzPartnerFlip">
-/* "Paid partnership" flips under the username like the nickname / audio: a little smaller than the nickname, all white, a touch bolder */
-.ipv-sub-line.ipv-partner-line{ color:#fff; font-weight:500; }
-.ipv-sub-line.ipv-partner-line span{ font-size:.92em; }
-.ipv-sub-line.ipv-partner-line b{ color:#fff; font-weight:600; }
+/* "Paid partnership" flips under the username with the nickname / audio (it no longer sits on the video) */
+.ipv-partner-line{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#ff4c4c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ipv-partner-line i{font-size:12px;flex-shrink:0;}
+.ipv-partner-line b{color:#fff;font-weight:700;overflow:hidden;text-overflow:ellipsis;}
 </style>
 </head>
 <body>
@@ -461,7 +457,7 @@ var peuraFeed = <?= json_encode($_peura_feed_data, $_json_flags) ?>;
 window.WT_LOGGED = <?= $user_id ? 1 : 0 ?>;
 var currentUserId = <?= (int)$user_id ?>;
 var dzMe = <?php
-    $__me = ['id'=>(int)$user_id, 'username'=>'', 'profile_pic'=>'mee.jpg'];
+    $__me = ['id'=>(int)$user_id, 'username'=>'', 'profile_pic'=>'uploads/mee.jpeg'];
     try{ $__mq = $conn->prepare('SELECT username, profile_pic FROM users WHERE id = ?'); $__mq->bind_param('i', $user_id); $__mq->execute(); $__mr = $__mq->get_result()->fetch_assoc();
          if($__mr){ $__me['username'] = (string)$__mr['username']; if(!empty($__mr['profile_pic'])) $__me['profile_pic'] = $__mr['profile_pic']; } }catch(Throwable $e){}
     echo json_encode($__me, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
@@ -615,7 +611,7 @@ function renderEngList(tab){
     var icon = tab==='reposts' ? 'ri-repeat-line' : 'ri-heart-3-fill';
     listEl.innerHTML=list.map(function(sp){
         return '<a href="profile.php?user_id='+sp.id+'" class="ipv-liker-row" style="text-decoration:none;">'+
-            '<img class="ipv-liker-avatar" src="'+esc(sp.profile_pic||'mee.jpg')+'" onerror="this.onerror=null;this.src=\'mee.jpg\'">'+
+            '<img class="ipv-liker-avatar" src="'+esc(sp.profile_pic||'uploads/mee.jpeg')+'" onerror="this.onerror=null;this.src=\'uploads/mee.jpeg\'">'+
             '<span class="ipv-liker-name">'+esc(sp.username||'')+(sp.isVerified?(window.DZ_VB||''):'')+'</span>'+
             '<i class="ipv-liker-icon '+icon+'"></i>'+
         '</a>';
@@ -626,6 +622,17 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeEngMo
 
 /* ───────── escaping / formatting ───────── */
 function dzAdSound(e){ if(e&&e.stopPropagation) e.stopPropagation(); showToast('Sorry, this feature doesn’t work for Ad posts'); return false; }
+window.dzSafeUrl = window.dzSafeUrl || function(u){ u=String(u==null?'':u).trim(); if(/^(https?:)?\/\//i.test(u)) return u; if(/^[a-z][a-z0-9+.-]*:/i.test(u)) return '#'; return u ? 'https://'+u : '#'; };
+/* black words on a light button colour, white words on a dark one */
+function dzCtaInk(c){
+    c=String(c||'').trim().toLowerCase();var r,g,b,m;
+    if((m=/^#([0-9a-f]{3})$/.exec(c))){r=parseInt(m[1][0]+m[1][0],16);g=parseInt(m[1][1]+m[1][1],16);b=parseInt(m[1][2]+m[1][2],16);}
+    else if((m=/^#([0-9a-f]{6})/.exec(c))){r=parseInt(m[1].slice(0,2),16);g=parseInt(m[1].slice(2,4),16);b=parseInt(m[1].slice(4,6),16);}
+    else if((m=/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/.exec(c))){r=+m[1];g=+m[2];b=+m[3];}
+    else if(c==='white')return '#000';
+    else return '#fff';
+    return (0.2126*r+0.7152*g+0.0722*b)>160?'#000':'#fff';
+}
 function esc(s){
     if(s===null||s===undefined) return '';
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
@@ -672,7 +679,7 @@ function dzStripHtml(p){
     if(!p.isAd && Array.isArray(p.socialProof) && p.socialProof.length){
         strip='<div class="ipv-social-proof-strip'+''+'">'+p.socialProof.slice(0,4).map(function(sp){
             var like=sp.action_type==='like';
-            return '<a href="profile.php?user_id='+sp.id+'" onclick="event.stopPropagation()" class="ipv-sp-avatar-wrap"><img src="'+esc(sp.profile_pic||'mee.jpg')+'" onerror="this.src=\'mee.jpg\'" class="ipv-sp-avatar">'+
+            return '<a href="profile.php?user_id='+sp.id+'" onclick="event.stopPropagation()" class="ipv-sp-avatar-wrap"><img src="'+esc(sp.profile_pic||'uploads/mee.jpeg')+'" onerror="this.src=\'uploads/mee.jpeg\'" class="ipv-sp-avatar">'+
                 (like ? '<span class="ipv-sp-badge ipv-sp-heart">'+IPV_HEART_SVG+'</span>'
                       : '<span class="ipv-sp-badge ipv-sp-rep" style="background:none;box-shadow:none;border:0;"><svg viewBox="0 0 100 100" aria-hidden="true" style="display:block;width:100%;height:100%;overflow:visible"><circle class="sp-rring" cx="50" cy="50" r="55.75" fill="none" stroke-width="11.5"/><circle cx="50" cy="50" r="50" fill="#7a4aff"/><g transform="translate(18.8 18.8) scale(2.6)" fill="none" stroke="#fff" stroke-width="2.04" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5V9.276A4.276 4.276 0 0 1 8.276 5H16M12.5 1.5L16 5L12.5 8.5"/><path d="M4 13.5V9.276A4.276 4.276 0 0 1 8.276 5H16M12.5 1.5L16 5L12.5 8.5" transform="rotate(180 12 12)"/></g></svg></span>')+
             '</a>';
@@ -699,7 +706,7 @@ function likesText(p){
 }
 function socialRowHtml(p){
     var lp=Array.isArray(p.socialProof)?p.socialProof.filter(function(sp){ return sp.action_type==='like'; }):[];
-    var av=lp.length?'<div class="ipv-social-avatars">'+lp.slice(0,3).map(function(sp){ return '<img src="'+esc(sp.profile_pic||'mee.jpg')+'" onerror="this.src=\'mee.jpg\'">'; }).join('')+'</div>':'';
+    var av=lp.length?'<div class="ipv-social-avatars">'+lp.slice(0,3).map(function(sp){ return '<img src="'+esc(sp.profile_pic||'uploads/mee.jpeg')+'" onerror="this.src=\'uploads/mee.jpeg\'">'; }).join('')+'</div>':'';
     var tx=likesText(p);
     if(!av && !tx) return '';
     return '<div class="ipv-social-row" onclick="event.stopPropagation();openEngModal('+p.id+')">'+av+(tx?'<div class="ipv-likes-text">'+tx+'</div>':'')+'</div>';
@@ -733,7 +740,7 @@ function hpApplyVideoSound(post){
     });
     if(act && !post.dataset.audio) act.muted = !on;
     var b = post.querySelector('.ipv-video-mute-btn i');
-    if(b && !post.dataset.audio) b.className = on ? 'dz-snd on' : 'dz-snd off';
+    if(b && !post.dataset.audio) b.className = on ? 'ri-volume-up-fill' : 'ri-volume-mute-fill';
 }
 
 /* ═══════════ COMMENT COUNTS (the number next to the comment button) ═══════════
@@ -806,7 +813,8 @@ function renderPost(p){
 
     var cta='';
     if(p.isAd && p.adCtaUrl){
-        cta='<a href="'+esc(dzSafeUrl(p.adCtaUrl))+'" target="_blank" rel="noopener" class="ipv-cta-pill'+''+'" data-meme-id="'+p.id+'" style="--cta-color:'+esc(p.adCtaColor||'#FF4C4C')+';" onclick="event.stopPropagation()"><span class="ipv-cta-pill-text">'+esc(p.adCtaText||'Learn more')+'</span><i class="ri-arrow-right-s-line ipv-cta-pill-chevron"></i></a>';
+        var _ctaCol=p.adCtaColor||'#FF4C4C';
+        cta='<a href="'+esc(dzSafeUrl(p.adCtaUrl))+'" target="_blank" rel="noopener" class="ipv-cta-bar" data-meme-id="'+p.id+'" style="--cta-color:'+esc(_ctaCol)+';--cta-ink:'+dzCtaInk(_ctaCol)+';" onclick="event.stopPropagation()"><span class="ipv-cta-bar-text">'+esc(p.adCtaText||'Learn more')+'</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>';
     }
 
     var controls='';
@@ -821,8 +829,8 @@ function renderPost(p){
     var useTrack=!!p.audioFile && !p.isAd && !(p.audioIsOriginal && hasVideo) && !audioIsVideoFile;
     if(!isTextOnly && (hasVideo||p.audioFile)){
         controls='<div class="ipv-media-controls">';
-        if(hasVideo) controls+='<button type="button" class="ipv-mute-btn ipv-video-mute-btn"'+((mc>1&&firstType!=='video'&&!useTrack)?' style="display:none"':'')+' onclick="event.stopPropagation();hpToggleVideoMute(this)"><i class="dz-snd off"></i></button>';
-        else controls+='<button type="button" class="ipv-mute-btn ipv-track-mute-btn" onclick="'+(p.isAd?'dzAdSound(event)':'event.stopPropagation();hpToggleTrackMute()')+'"><i class="dz-snd off"></i></button>';
+        if(hasVideo) controls+='<button type="button" class="ipv-mute-btn ipv-video-mute-btn"'+((mc>1&&firstType!=='video'&&!useTrack)?' style="display:none"':'')+' onclick="event.stopPropagation();hpToggleVideoMute(this)"><i class="ri-volume-mute-fill"></i></button>';
+        else controls+='<button type="button" class="ipv-mute-btn ipv-track-mute-btn" onclick="'+(p.isAd?'dzAdSound(event)':'event.stopPropagation();hpToggleTrackMute()')+'"><i class="ri-volume-mute-fill"></i></button>';
         controls+='</div>';
     }
 
@@ -836,7 +844,7 @@ function renderPost(p){
         coOpen='event.stopPropagation();dzCollabSheet('+p.id+',hpCollabOf('+p.id+'))';
         coName=displayName+' and '+(_co.list.length===1?esc(_co.list[0].username):_co.list.length+' others');
         nick='';trackBtn='';
-        _co.list.slice(0,2).forEach(function(c,i){coPics+='<img class="ipv-avatar ipv-co-pic c'+(i+1)+'" src="'+esc(c.pic||'mee.jpg')+'" onerror="this.src=\'mee.jpg\'" onclick="'+coOpen+'">';});
+        _co.list.slice(0,2).forEach(function(c,i){coPics+='<img class="ipv-avatar ipv-co-pic c'+(i+1)+'" src="'+esc(c.pic||'uploads/mee.jpeg')+'" onerror="this.src=\'uploads/mee.jpeg\'" onclick="'+coOpen+'">';});
     }
 
     var audioHtml='';
@@ -845,7 +853,7 @@ function renderPost(p){
         audioHtml='<div class="ipv-audio-tag" onclick="'+(p.isAd?'dzAdSound(event)':'event.stopPropagation();ccmOpenSoundsPage('+p.userId+','+p.audioId+')')+'" style="cursor:pointer;"><span class="ipv-audio-icon"><span class="ipv-eq-bar"></span><span class="ipv-eq-bar"></span><span class="ipv-eq-bar"></span></span><span class="ipv-audio-text">'+esc(label)+'</span></div>';
     }
     var aiHtml=p.isAiGenerated?'<div class="ipv-ai-line"><span>AI Generated</span></div>':'';
-    var partnerHtml=p.isPartnership?'<div class="ipv-sub-line ipv-partner-line"><span>Paid partnership'+(p.partnerBrand?' with <b>'+esc(p.partnerBrand)+'</b>':'')+'</span></div>':'';
+    var partnerHtml=p.isPartnership?'<div class="ipv-partner-line"><i class="ri-handshake-line"></i><span>Paid partnership'+(p.partnerBrand?' with <b>'+esc(p.partnerBrand)+'</b>':'')+'</span></div>':'';
     var panes=[];
     if(p.suggested && !isOwn) panes.push('<div class="ipv-sub-line ipv-sugg-line">Suggested for you</div>');
     if(nick) panes.push('<div class="ipv-sub-line">'+nick+'</div>');
@@ -869,7 +877,7 @@ function renderPost(p){
     var wrapClass='ipv-media-wrap'+((!isTextOnly&&mc>1)?' ipv-multi':'')+(isTextOnly?' ipv-textonly'+(tl?' ipv-tl':''):'');
     var audioAttrs=useTrack?' data-audio="'+esc(p.audioFile)+'" data-music-vol="'+(p.musicVolume!=null?p.musicVolume:80)+'" data-video-vol="'+(p.videoAudioVolume!=null?p.videoAudioVolume:40)+'"':'';
 
-    var avatarImg='<img class="ipv-avatar" src="'+esc(p.pic||'mee.jpg')+'" onerror="this.src=\'mee.jpg\'" onclick="'+(_co?coOpen:'location.href=\'profile.php?user_id='+p.userId+'\'')+'">';
+    var avatarImg='<img class="ipv-avatar" src="'+esc(p.pic||'uploads/mee.jpeg')+'" onerror="this.src=\'uploads/mee.jpeg\'" onclick="'+(_co?coOpen:'location.href=\'profile.php?user_id='+p.userId+'\'')+'">';
 
     var rs=p.reason, reasonHtml='';
     if(rs){
@@ -886,7 +894,7 @@ function renderPost(p){
             '<button type="button" class="ipv-kebab index-kebab-btn" data-id="'+p.id+'" onclick="event.stopPropagation();openIndexSheet('+p.id+')"><i class="ri-menu-line"></i></button>'+
         '</div>'+
         headerCap+
-        '<div class="'+wrapClass+'" data-count="'+mc+'" data-active-idx="0">'+(isTextOnly?(topLeft+topRight+mediaInner+strip+cta+partner):(topLeft+topRight+strip+cta+mediaInner+arrows+controls+partner+dotsHtml))+'</div>'+
+        '<div class="'+wrapClass+'" data-count="'+mc+'" data-active-idx="0">'+(isTextOnly?(topLeft+topRight+mediaInner+strip+partner):(topLeft+topRight+strip+mediaInner+arrows+controls+partner+dotsHtml))+'</div>'+cta+
         '<div class="ipv-actions"><div class="ipv-actions-left">'+
             '<div class="ipv-action-group"><button type="button" class="ipv-action-btn like-btn'+(p.liked?' active':'')+'" data-id="'+p.id+'" onclick="event.stopPropagation();hpAction('+p.id+',\'like\',this)"><i class="sp-rp sp-ic sp-fillable"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></i></button>'+cntHtml('like-count',p.hideLikes,p.likeCount)+'</div>'+
             (p.isAd?'':'<div class="ipv-action-group"><button type="button" class="ipv-action-btn repost-btn'+(p.reposted?' active':'')+'" data-id="'+p.id+'" onclick="event.stopPropagation();hpAction('+p.id+',\'repost\',this)"><i class="sp-rp sp-ic"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.5V9.276A4.276 4.276 0 0 1 8.276 5H16M12.5 1.5L16 5L12.5 8.5"/><path d="M4 13.5V9.276A4.276 4.276 0 0 1 8.276 5H16M12.5 1.5L16 5L12.5 8.5" transform="rotate(180 12 12)"/></svg></i></button>'+cntHtml('repost-count',p.hideReposts,p.repostCount)+'</div>')+
@@ -1128,7 +1136,7 @@ function riseCardHtml(a){
     else thumb = '<img class="hp-rise-thumb" src="'+esc(a.file)+'" alt="" loading="lazy" onerror="this.src=\'uploads/Text.jpg\'">';
     return '<div class="hp-rise-card" onclick="window.hpOpenZeems('+a.id+')">'+
         '<div class="hp-rise-media">'+thumb+'<div class="hp-rise-badge"><i class="ri-fire-fill"></i>Rising</div></div>'+
-        '<div class="hp-rise-info"><img class="hp-rise-av" src="'+esc(a.pic || 'mee.jpg')+'" onerror="this.src=\'mee.jpg\'" alt="">'+
+        '<div class="hp-rise-info"><img class="hp-rise-av" src="'+esc(a.pic || 'uploads/mee.jpeg')+'" onerror="this.src=\'uploads/mee.jpeg\'" alt="">'+
         '<span class="hp-rise-name">'+esc(a.username)+'</span>'+
         '<span class="hp-rise-likes"><i class="ri-heart-3-fill" style="color:var(--red)"></i>'+(a.likes==null?'':fmtNum(a.likes))+'</span></div>'+
     '</div>';
@@ -1379,7 +1387,7 @@ function fillRiseSlots(){
         var cards=users.map(function(u){
             var uid=parseInt(u.id,10), following=parseInt(u.is_following)>0, priv=!!parseInt(u.is_fully_private||0), on=!!parseInt(u.is_online||0);
             var btn=(!priv||following)?'<button type="button" class="track-btn hp-sugg-btn'+(following?' following':'')+'" data-user="'+uid+'" onclick="event.stopPropagation();handleTrackBtn(this)">'+(following?'Untrack':'Track')+'</button>':'';
-            var photo='<img class="hp-sugg-photo" src="'+esc(u.profile_pic||'mee.jpg')+'" onerror="this.src=\'mee.jpg\'">';
+            var photo='<img class="hp-sugg-photo" src="'+esc(u.profile_pic||'uploads/mee.jpeg')+'" onerror="this.src=\'uploads/mee.jpeg\'">';
             return '<div class="hp-sugg-card" data-uid="'+uid+'"><a href="profile.php?user_id='+uid+'" class="hp-sugg-aw-link" style="display:block">'+avWrap(photo,uid,on,'hp-sugg-aw')+'</a>'+
                 '<div class="hp-sugg-info"><a class="hp-sugg-name" href="profile.php?user_id='+uid+'">'+esc(u.username)+'</a><div class="hp-sugg-reason">'+esc(u.reason||'')+'</div></div>'+
                 '<div class="hp-sugg-btns">'+btn+'<button type="button" class="hp-sugg-rm" onclick="hpSuggRemove(this)">Remove</button></div></div>';
@@ -1595,13 +1603,7 @@ function fillRiseSlots(){
             switchers[id]=setInterval(function(){ panes[i].classList.remove('active'); i=(i+1)%panes.length; panes[i].classList.add('active'); },5000);
         });
     }
-    function initCtaCycles(posts){
-        posts.forEach(function(post){
-            var pill=post.querySelector('.ipv-cta-pill'); if(!pill) return;
-            var on=false;
-            ctaTimers[post.dataset.id]=setInterval(function(){ on=!on; pill.classList.toggle('ipv-cta-pill-expanded',on); },3000);
-        });
-    }
+    function initCtaCycles(posts){ /* the ad button is now a steady bar under the picture: nothing to cycle */ }
 
     var MULTI_RATIO=3.5/4, MULTI_TOL=.15, LONG_RATIO=1.2;
     window.hpMeasure=function(el){
@@ -1610,7 +1612,7 @@ function fillRiseSlots(){
         if(!w||!h) return;
         var ratio=h/w; el.dataset.ratio=ratio;
         if(wrap.classList.contains('ipv-multi')){
-            var fc=Math.abs(ratio-MULTI_RATIO)/MULTI_RATIO<=MULTI_TOL; el.classList.toggle('ipv-fit-cover',fc); el.style.removeProperty('object-fit');   /* class decides (same as the profile viewer) — no inline override */
+            var fc=Math.abs(ratio-MULTI_RATIO)/MULTI_RATIO<=MULTI_TOL; el.classList.toggle('ipv-fit-cover',fc); el.style.setProperty('object-fit',fc?'cover':'contain','important');
             return;
         }
         if(parseInt(el.dataset.idx||'0',10)===parseInt(wrap.dataset.activeIdx||'0',10)) applyAspect(wrap,ratio);
@@ -1714,14 +1716,14 @@ function fillRiseSlots(){
             wrap.querySelectorAll('video').forEach(function(x){ x.muted=nowMuted; });
             updateTrackMuteIcons();
         }
-        btn.querySelector('i').className=nowMuted?'dz-snd off':'dz-snd on';
+        btn.querySelector('i').className=nowMuted?'ri-volume-mute-fill':'ri-volume-up-fill';
     };
     window.hpToggleTrackMute=function(){
         var a=document.getElementById('ipvAudioPlayer'); if(!a) return;
         trackMuted=!trackMuted; a.muted=trackMuted; updateTrackMuteIcons();
     };
     function updateTrackMuteIcons(){
-        var cls=trackMuted?'dz-snd off':'dz-snd on';
+        var cls=trackMuted?'ri-volume-mute-fill':'ri-volume-up-fill';
         document.querySelectorAll('#ipvList .ipv-track-mute-btn i, #ipvList .ipv-post[data-audio] .ipv-video-mute-btn i').forEach(function(i){ i.className=cls; });
     }
 
@@ -1996,7 +1998,7 @@ function pfMore(btn){
         var btn = (!priv || following)
             ? '<button type="button" class="track-btn pf-track'+(following?' following':'')+'" data-user="'+uid+'" onclick="handleTrackBtn(this)">'+(following?'Untrack':'Track')+'</button>'
             : '';
-        var img = '<img class="pf-av" src="'+esc(u.profile_pic||'mee.jpg')+'" onerror="this.src=\'mee.jpg\'" alt="">';
+        var img = '<img class="pf-av" src="'+esc(u.profile_pic||'uploads/mee.jpeg')+'" onerror="this.src=\'uploads/mee.jpeg\'" alt="">';
         return '<div class="pf-row">'+
             '<a href="profile.php?user_id='+uid+'">'+avWrap(img, uid, on)+'</a>'+
             '<div class="pf-row-info"><a class="pf-row-t" href="profile.php?user_id='+uid+'">'+esc(u.username)+'</a>'+
@@ -2051,7 +2053,7 @@ window.W = (function(){
     var MAX = 2200, tags = [], tagLast = [], tagTimer = null, tagSeq = 0, busy = false;
 
     function lock(){ document.body.style.overflow = document.querySelector('.wsh.open') ? 'hidden' : ''; }
-    function tagPic(u){ return u && u.pic ? u.pic : 'mee.jpg'; }
+    function tagPic(u){ return u && u.pic ? u.pic : 'uploads/default.jpg'; }
 
     function open(){
         if(!window.WT_LOGGED){ location.href = 'login.php'; return; }
@@ -2086,7 +2088,7 @@ window.W = (function(){
     function tagHint(m){ $('w-tagres').innerHTML = '<div class="w-empty"><i class="ri-user-search-line"></i>'+eh(m)+'</div>'; }
     function tagRender(){
         $('w-tagsel').innerHTML = tags.length
-            ? tags.map(function(u){ return '<span class="w-tg-chip"><img src="'+eh(tagPic(u))+'" alt="" onerror="this.src=\'mee.jpg\'"><span>@'+eh(u.username)+'</span><button type="button" aria-label="Remove tag" onclick="W.tagRemove('+u.id+')">✕</button></span>'; }).join('')
+            ? tags.map(function(u){ return '<span class="w-tg-chip"><img src="'+eh(tagPic(u))+'" alt="" onerror="this.src=\'uploads/default.jpg\'"><span>@'+eh(u.username)+'</span><button type="button" aria-label="Remove tag" onclick="W.tagRemove('+u.id+')">✕</button></span>'; }).join('')
             : '<span class="w-hint" style="margin:0">Nobody tagged yet.</span>';
         $('w-tagval').textContent = tags.length ? (tags.length === 1 ? '@'+tags[0].username : tags.length+' people') : 'None';
         if(!tagLast.length) return;
@@ -2094,7 +2096,7 @@ window.W = (function(){
         $('w-tagres').innerHTML = tagLast.map(function(u){
             var added = !!have[u.id], dis = added || !u.ok;
             var sub = !u.ok ? '<span class="no">'+eh(u.why)+'</span>' : (u.nickname ? '<span>'+eh(u.nickname)+'</span>' : '');
-            return '<button type="button" class="w-tg-row"'+(dis?' disabled':'')+' onclick="W.tagAdd('+u.id+')"><img class="w-tg-av" src="'+eh(tagPic(u))+'" alt="" onerror="this.src=\'mee.jpg\'"><span class="w-tg-inf"><strong>@'+eh(u.username)+'</strong>'+sub+'</span>'+(added?'<span class="w-tg-end">Added</span>':(u.ok?'<span class="w-tg-end">Tag</span>':''))+'</button>';
+            return '<button type="button" class="w-tg-row"'+(dis?' disabled':'')+' onclick="W.tagAdd('+u.id+')"><img class="w-tg-av" src="'+eh(tagPic(u))+'" alt="" onerror="this.src=\'uploads/default.jpg\'"><span class="w-tg-inf"><strong>@'+eh(u.username)+'</strong>'+sub+'</span>'+(added?'<span class="w-tg-end">Added</span>':(u.ok?'<span class="w-tg-end">Tag</span>':''))+'</button>';
         }).join('');
     }
     function tagSearch(){
@@ -2301,6 +2303,5 @@ function dzBellClick(e, a){
 
 </script>
 <?php dz_hashtags_script(); /* hashtags.php */ ?>
-<?php if(is_file(__DIR__ . '/tv_nav.php')) include __DIR__ . '/tv_nav.php'; ?>
 </body>
 </html>

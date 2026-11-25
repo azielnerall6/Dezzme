@@ -350,6 +350,28 @@ function _ccmSafeColor(c, fb) {
   c = String(c == null ? "" : c);
   return /^[#a-zA-Z0-9(),.%\-\s_]{1,60}$/.test(c) ? c : fb;
 }
+/* black words on a light button colour, white words on a dark one (the advertiser picks the colour on the upload page) */
+function _ccmInkFor(c) {
+  c = String(c || "")
+    .trim()
+    .toLowerCase();
+  var r, g, b, m;
+  if ((m = /^#([0-9a-f]{3})$/.exec(c))) {
+    r = parseInt(m[1][0] + m[1][0], 16);
+    g = parseInt(m[1][1] + m[1][1], 16);
+    b = parseInt(m[1][2] + m[1][2], 16);
+  } else if ((m = /^#([0-9a-f]{6})/.exec(c))) {
+    r = parseInt(m[1].slice(0, 2), 16);
+    g = parseInt(m[1].slice(2, 4), 16);
+    b = parseInt(m[1].slice(4, 6), 16);
+  } else if ((m = /^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/.exec(c))) {
+    r = +m[1];
+    g = +m[2];
+    b = +m[3];
+  } else if (c === "white") return "#000";
+  else return "#fff";
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 160 ? "#000" : "#fff";
+}
 function _ccmTypeTagInfo(rawType) {
   var type = (rawType || "").toLowerCase();
   var map = {
@@ -450,6 +472,7 @@ function ccmUpdateSocialProofVisibility() {
     "#ccm-cta-pill",
     "#ccm-poll-pill",
     "#ccm-connected-tag",
+    ".ccm-ad-info",
   ].forEach(function (sel) {
     var el = slideEl.querySelector(sel);
     if (el) el.classList.toggle("ccm-sp-hidden", _ccmCaptionExpanded);
@@ -693,7 +716,59 @@ function _ccmInitInfoSwitcher(slide) {
   }, 5000);
 }
 
+/* ── ad question row: a finger on it only scrolls the row ──
+   the swipe-to-close / swipe-to-profile / next-post handlers listen on the whole document in the capture phase, so they run BEFORE anything on the row can stop them.
+   This listener is registered first, so it cuts the touch off for them (a row with nothing to scroll lets the swipe through) */
+(function () {
+  ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(function (ev) {
+    document.addEventListener(
+      ev,
+      function (e) {
+        var t = e.target,
+          row = t && t.closest ? t.closest(".ccm-ai-qs") : null;
+        if (!row) return;
+        if (ev === "touchstart" && row.scrollWidth <= row.clientWidth + 2) {
+          row._dzOwn = false;
+          return;
+        }
+        if (ev === "touchstart") row._dzOwn = true;
+        if (row._dzOwn !== false) e.stopImmediatePropagation();
+      },
+      { capture: true, passive: true },
+    );
+  });
+})();
+
 /* ── CTA PILL CYCLE (ad posts) ── */
+/* once an ad's button has opened it stays open, also when you scroll away and come back; it only closes again when Zeems is closed */
+var _ccmCtaActive = {};
+document.addEventListener("zeems:closed", function () {
+  _ccmCtaActive = {};
+});
+/* inactive -> active: the button grows from its own width to the full width instead of snapping (width cannot animate from auto, so it is measured and set in pixels for the length of the growth) */
+function _ccmPillGrow(pill) {
+  try {
+    var w0 = pill.offsetWidth;
+    pill.style.transition = "none";
+    pill.classList.add("ccm-cta-pill-expanded");
+    pill.style.width = "";
+    var w1 = pill.offsetWidth;
+    pill.style.width = w0 + "px";
+    pill.style.height = "";
+    pill.classList.remove("ccm-cta-pill-expanded");
+    void pill.offsetWidth;
+    pill.style.transition = "";
+    pill.classList.add("ccm-cta-pill-expanded");
+    pill.style.width = w1 + "px";
+    setTimeout(function () {
+      pill.style.width = "";
+    }, 620);
+  } catch (e) {
+    pill.style.width = "";
+    pill.style.transition = "";
+    pill.classList.add("ccm-cta-pill-expanded");
+  }
+}
 function _ccmInitCtaPillCycle(slide) {
   if (_ccmCtaPillTimer) {
     clearInterval(_ccmCtaPillTimer);
@@ -702,12 +777,209 @@ function _ccmInitCtaPillCycle(slide) {
   if (!slide) return;
   var pill = slide.querySelector("#ccm-cta-pill");
   if (!pill) return;
+  var cur = ccmFeed[_ccmIndex],
+    pid =
+      cur && cur.data && cur.data.id !== undefined ? String(cur.data.id) : "";
   pill.classList.remove("ccm-cta-pill-expanded");
-  var expanded = false;
-  _ccmCtaPillTimer = setInterval(function () {
-    expanded = !expanded;
-    pill.classList.toggle("ccm-cta-pill-expanded", expanded);
+  _ccmAdInfoLoad(slide, pill);
+  if (pid && _ccmCtaActive[pid]) {
+    pill.classList.add("ccm-cta-pill-expanded");
+    if (slide.querySelector(".ccm-ad-info")) _ccmAdInfoShow(slide, 60);
+    return;
+  }
+  _ccmCtaPillTimer = setTimeout(function () {
+    _ccmCtaPillTimer = null;
+    _ccmPillGrow(pill);
+    if (pid) _ccmCtaActive[pid] = true;
+    if (slide.querySelector(".ccm-ad-info")) _ccmAdInfoShow(slide);
   }, 3000);
+}
+
+/* ── AD INFO CARD: picture + line + tappable questions that open above the ad's button ── */
+var _ccmAdInfo = {};
+function _ccmAdInfoGet(id, cb) {
+  if (Object.prototype.hasOwnProperty.call(_ccmAdInfo, id)) {
+    var v = _ccmAdInfo[id];
+    if (v && v.__wait) v.__wait.push(cb);
+    else cb(v);
+    return;
+  }
+  var wait = [cb];
+  _ccmAdInfo[id] = { __wait: wait };
+  fetch("ad_faq.php?a=get&id=" + encodeURIComponent(id), {
+    credentials: "same-origin",
+  })
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function (d) {
+      var ok =
+        d && d.ok && (d.pic || d.text || (d.questions && d.questions.length));
+      _ccmAdInfo[id] = ok ? d : null;
+      wait.forEach(function (f) {
+        f(_ccmAdInfo[id]);
+      });
+    })
+    .catch(function () {
+      delete _ccmAdInfo[id];
+      wait.forEach(function (f) {
+        f(null);
+      });
+    });
+}
+function _ccmAdInfoLoad(slide, pill) {
+  var cur = ccmFeed[_ccmIndex],
+    p = cur && cur.data;
+  if (!p || !p.isAd || !p.adCtaUrl || p.id === undefined) return;
+  var id = p.id;
+  _ccmAdInfoGet(id, function (d) {
+    var now = ccmFeed[_ccmIndex];
+    if (
+      !d ||
+      !slide.isConnected ||
+      !now ||
+      !now.data ||
+      String(now.data.id) !== String(id) ||
+      slide.querySelector(".ccm-ad-info")
+    )
+      return;
+    var h = '<div class="ccm-ad-info-in">';
+    if (d.pic || d.text) {
+      h +=
+        '<div class="ccm-ai-head">' +
+        (d.pic
+          ? '<img class="ccm-ai-pic" src="' +
+            _ccmSafeUrl(d.pic) +
+            '" alt="" onerror="this.style.display=\'none\'">'
+          : "") +
+        (d.text
+          ? '<div class="ccm-ai-text">' + _ccmEscapeHtml(d.text) + "</div>"
+          : "") +
+        "</div>";
+    }
+    if (d.questions && d.questions.length) {
+      h +=
+        '<div class="ccm-ai-label">Frequently asked questions</div><div class="ccm-ai-qs">';
+      d.questions.forEach(function (q, i) {
+        h +=
+          '<button type="button" class="ccm-ai-q" onclick="event.stopPropagation();ccmAdAsk(\'' +
+          _ccmId(id) +
+          "'," +
+          i +
+          ',this)">' +
+          _ccmEscapeHtml(q) +
+          "</button>";
+      });
+      h += "</div>";
+    }
+    h += "</div>";
+    var el = document.createElement("div");
+    el.className = "ccm-ad-info";
+    /* taps on the card never reach the picture underneath (no pause / double-tap like), but finger swipes pass through so
+           swiping to close, to the next post or to the profile still works from the card */
+    ["pointerdown", "pointerup", "mousedown", "click"].forEach(function (ev) {
+      el.addEventListener(ev, function (e) {
+        e.stopPropagation();
+      });
+    });
+    el.innerHTML = h;
+    /* the row of questions scrolls sideways by itself: a swipe that starts on it is only a scroll */
+    var qs = el.querySelector(".ccm-ai-qs");
+    if (qs)
+      ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(
+        function (ev) {
+          qs.addEventListener(
+            ev,
+            function (e) {
+              e.stopPropagation();
+            },
+            { passive: true },
+          );
+        },
+      );
+    slide.appendChild(el);
+    pill.classList.add("ccm-cta-has-info");
+    if (pill.classList.contains("ccm-cta-pill-expanded"))
+      _ccmAdInfoShow(slide, 60);
+  });
+}
+function _ccmAdInfoPlace(slide) {
+  var pill = slide.querySelector("#ccm-cta-pill"),
+    el = slide.querySelector(".ccm-ad-info");
+  if (!pill || !el) return;
+  var s = slide.getBoundingClientRect(),
+    r = pill.getBoundingClientRect();
+  el.style.left = r.left - s.left + "px";
+  el.style.right = s.right - r.right + "px";
+  el.style.bottom = s.bottom - r.top + "px";
+}
+function _ccmAdInfoShow(slide, delay) {
+  setTimeout(
+    function () {
+      /* after the button has finished opening, so the card sits exactly on top of it */
+      var el = slide.querySelector(".ccm-ad-info");
+      if (!el || !slide.isConnected) return;
+      _ccmAdInfoPlace(slide);
+      el.classList.add("show");
+    },
+    delay === undefined ? 580 : delay,
+  );
+}
+window.addEventListener("resize", function () {
+  var s = document.getElementById("ccm-slide");
+  if (s) _ccmAdInfoPlace(s);
+});
+function ccmAdAsk(id, i, btn) {
+  if (btn.dataset.busy) return;
+  var old = btn.innerHTML;
+  btn.dataset.busy = "1";
+  btn.classList.add("busy");
+  var fd = new URLSearchParams();
+  fd.set("a", "ask");
+  fd.set("id", id);
+  fd.set("i", String(i));
+  if (window.DZ_CSRF) fd.set("csrf", window.DZ_CSRF);
+  fetch("ad_faq.php", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: _ccmCsrfH(),
+    body: fd,
+  })
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function (d) {
+      btn.classList.remove("busy");
+      if (d && d.ok) {
+        try {
+          dzHaptic.success();
+        } catch (e) {}
+        btn.classList.add("sent");
+        btn.innerHTML =
+          '<i class="ri-check-line"></i> ' +
+          (d.again ? "Already sent" : "Sent");
+        ccmToast(
+          d.again
+            ? "You already asked this"
+            : "Question sent. Their reply will come to your messages",
+        );
+        setTimeout(function () {
+          btn.classList.remove("sent");
+          btn.innerHTML = old;
+          delete btn.dataset.busy;
+        }, 2600);
+      } else {
+        ccmToast((d && d.msg) || "Could not send your question");
+        btn.innerHTML = old;
+        delete btn.dataset.busy;
+      }
+    })
+    .catch(function () {
+      btn.classList.remove("busy");
+      btn.innerHTML = old;
+      delete btn.dataset.busy;
+      ccmToast("Could not send your question");
+    });
 }
 
 /* ── ATTACHED SOUNDTRACK ── */
@@ -4762,11 +5034,12 @@ function _ccmRenderPost(p, isPreview) {
       '" ' +
       'style="--cta-color:' +
       ctaColor +
+      ";--cta-ink:" +
+      _ccmInkFor(ctaColor) +
       ';" onclick="event.stopPropagation()">' +
       '<span class="ccm-cta-pill-text">' +
       _ccmEscapeHtml(ctaLabel) +
       "</span>" +
-      '<i class="ri-arrow-right-s-line ccm-cta-pill-chevron"></i>' +
       "</a>";
   }
 
@@ -5925,6 +6198,9 @@ function _ccmActivateCurrentSlide(currentItem) {
     _ccmOwnShown(newMemeId);
   } catch (e) {}
   try {
+    _ccmExtendRun();
+  } catch (e) {}
+  try {
     _ccmNiOnSlide(newMemeId);
   } catch (e) {}
   try {
@@ -6173,7 +6449,7 @@ function _ccmResetAllOverlayStyles(track) {
 }
 
 var CCM_OVERLAY_SELECTOR =
-  ".ccm-group-tag, .ccm-top-right-tags, .ccm-social-proof-strip, .ccm-cta-pill, .ccm-connected-tag, .ccm-rail, .ccm-bottom, .ccm-sugg-header, .ccm-sugg-dots, .ccm-sugg-arrow";
+  ".ccm-group-tag, .ccm-top-right-tags, .ccm-social-proof-strip, .ccm-cta-pill, .ccm-ad-info, .ccm-connected-tag, .ccm-rail, .ccm-bottom, .ccm-sugg-header, .ccm-sugg-dots, .ccm-sugg-arrow";
 
 function _ccmOverlayEls(slideEl) {
   return slideEl ? slideEl.querySelectorAll(CCM_OVERLAY_SELECTOR) : [];
@@ -7096,7 +7372,7 @@ function _ccmOwnReady() {
 }
 /* One ranking session per page visit (fixed seed + asof), read chunk by chunk (page 1, 2, 3…): the server ranks it once and
    remembers it, so every later chunk is cheap and never repeats. Only fetches when fewer than CCM_OWN_LOW posts are unseen. */
-function _ccmOwnPrefetch() {
+function _ccmOwnPrefetch(force) {
   if (
     _ccmOwn.loading ||
     _ccmOwn.done ||
@@ -7104,7 +7380,8 @@ function _ccmOwnPrefetch() {
     !_ccmOwnPage()
   )
     return _ccmOwn.p;
-  if (_ccmOwnUnseen().length >= CCM_OWN_LOW) return _ccmOwn.p;
+  if (!force && _ccmOwnUnseen().length >= CCM_OWN_LOW)
+    return _ccmOwn.p; /* force: the player is near its end, whatever the count says (posts swiped past quickly never count as seen) */
   _ccmOwn.loading = true;
   _ccmOwn.p = new Promise(function (resolve) {
     try {
@@ -7180,7 +7457,85 @@ function _ccmOwnTake(tapped) {
   }
   if (out.length < 2) return null;
   _ccmOwn.tappedId = tid;
+  _ccmOwn.lastRun = out;
   return out;
+}
+/* the run never ends while there are more posts: when you get within a few posts of the end of what is loaded, the next ones are added (and fetched if they are not here yet),
+   so there is no dead end. Only for the algorithm's own run, never for a list a page passed in (profile / history / group). */
+var _ccmExtBusy = false,
+  _ccmExtSugg = 0;
+function _ccmExtendRun() {
+  if (window.CCM_OWN_RUN === false || !_ccmOwnPage()) return;
+  if (_ccmFeedSource !== null && _ccmFeedSource !== _ccmOwn.lastRun) return;
+  if (ccmFeed.length - 1 - _ccmIndex > 8) return;
+  var add = function () {
+    var have = {},
+      n = 0;
+    ccmFeed.forEach(function (it) {
+      if (it && it.type === "post" && it.data) {
+        have[String(it.data.id)] = 1;
+        n++;
+      }
+    });
+    var un = _ccmOwnUnseen().filter(function (q) {
+        return !have[String(q.id)];
+      }),
+      added = 0,
+      sugg = window.cmSuggUsers || [];
+    for (var i = 0; i < un.length && added < CCM_OWN_CHUNK; i++) {
+      var q = un[i];
+      have[String(q.id)] = 1;
+      n++;
+      added++;
+      _ccmOwn.pos[String(q.id)] = n;
+      if (q.isAd) _ccmOwn.ads[String(q.id)] = 1;
+      ccmFeed.push({ type: "post", data: q });
+      if (n % 7 === 0 && sugg.length > 0) {
+        var m = Math.min(16, sugg.length),
+          sl = [];
+        for (var j = 0; j < m; j++)
+          sl.push(sugg[(_ccmExtSugg + j) % sugg.length]);
+        ccmFeed.push({ type: "sugg", data: sl });
+        _ccmExtSugg = (_ccmExtSugg + m) % sugg.length;
+      }
+    }
+    if (added) {
+      /* the person is already on the last post: the empty "next" page gets its post now */
+      var track = document.getElementById("ccm-vtrack"),
+        nx = track && track.querySelector('.ccm-vslide[data-pos="next"]');
+      if (nx && !nx.querySelector(".ccm-slide") && ccmFeed[_ccmIndex + 1]) {
+        try {
+          track.replaceChild(
+            _ccmBuildSlideWrap(_ccmSlideItem(_ccmIndex + 1), "next"),
+            nx,
+          );
+        } catch (e) {}
+      }
+    }
+    return added;
+  };
+  if (add() > 0 || _ccmOwn.done || _ccmExtBusy) return;
+  _ccmExtBusy = true;
+  var pr = null;
+  try {
+    pr = _ccmOwnPrefetch(true);
+  } catch (e) {}
+  var fin = function () {
+    _ccmExtBusy = false;
+    var n = 0;
+    try {
+      n = add();
+    } catch (e) {}
+    if (
+      !n &&
+      !_ccmOwn.done &&
+      document.getElementById("cardCaptionModal") &&
+      document.getElementById("cardCaptionModal").classList.contains("ccm-open")
+    )
+      setTimeout(_ccmExtendRun, 2500);
+  }; /* nothing came (slow or failed request): try again in a moment while the player is open */
+  if (pr && pr.then) pr.then(fin, fin);
+  else fin();
 }
 /* view counts: 1200 -> 1.2K, 3400000 -> 3.4M (null/undefined -> empty) */
 function ccmFmtViews(n) {
@@ -8055,8 +8410,12 @@ function renderShareList(users) {
         '<img src="' +
         _ccmSafeUrl(pic, "mee.jpg") +
         '" onerror="this.src=\'mee.jpg\'">' +
-        '<span class="share-user-name">' +
+        '<span class="share-user-name"><span class="share-user-name-t">' +
         _ccmEscapeHtml(u.username) +
+        "</span>" +
+        (parseInt(u.is_verified) > 0
+          ? '<svg class="ccm-vbadge ccm-vbadge-share" viewBox="0 0 256 256" aria-label="Verified"><use href="#ccm-vflower"/></svg>'
+          : "") +
         "</span>" +
         '<span class="share-user-check"><i class="ri-check-line"></i></span>' +
         "</div>"

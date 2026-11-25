@@ -1213,7 +1213,7 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
 
 /* ── SOCIAL PROOF / CTA PILL / CONNECTED PILL (share the same slot) ── */
 .ccm-social-proof-strip{
-    position:absolute; left:calc((9px + 7 * var(--ccm-t)) * var(--ccm-s)); bottom:calc((110px + 65 * var(--ccm-t)) * var(--ccm-s)); z-index:6;
+    position:absolute; left:calc((9px + 7 * var(--ccm-t)) * var(--ccm-s)); bottom:calc((100px + 60 * var(--ccm-t)) * var(--ccm-s)); z-index:6;
     display:flex; flex-direction:row-reverse; gap:8px;
     pointer-events:none;
     transition:opacity .22s ease, transform .22s ease, visibility .22s ease;
@@ -1222,7 +1222,7 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
 .ccm-social-proof-strip.ccm-sp-co{ margin-bottom:calc(var(--ccm-poster-h, 40px) * .5); }   /* a collab cluster is taller than one picture: lift the strip so it never touches it (dashes / progress bar) */
 .ccm-media-dashes ~ .ccm-social-proof-strip.ccm-sp-co{ }
 #ccm-slide:has(.ccm-media-dashes) .ccm-social-proof-strip.ccm-sp-co,
-#ccm-slide:has(.ccm-video-progress[style*="display:flex"]) .ccm-social-proof-strip.ccm-sp-co{ margin-bottom:calc(var(--ccm-poster-h, 40px) * .5 + (110px + 65 * var(--ccm-t)) * var(--ccm-s) * .08); }   /* with dashes / the progress bar: another 8% higher */
+#ccm-slide:has(.ccm-video-progress[style*="display:flex"]) .ccm-social-proof-strip.ccm-sp-co{ margin-bottom:calc(var(--ccm-poster-h, 40px) * .5 + ((110px + 65 * var(--ccm-t)) * .08 + 10px + 5 * var(--ccm-t)) * var(--ccm-s)); }   /* with dashes / the progress bar: another 8% higher */
 .ccm-social-proof-strip.ccm-sp-hidden{ opacity:0; transform:translateY(10px); visibility:hidden; }
 .ccm-social-proof-strip.ccm-sp-hidden .ccm-sp-avatar-wrap{ pointer-events:none; }
 .ccm-social-proof-strip.ccm-sp-raised{ bottom:calc((122px + 73 * var(--ccm-t)) * var(--ccm-s)); }
@@ -1268,7 +1268,7 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
 /* glass colour shared by the resting link pill and the little action buttons (Interested / Not interested / Share this in the Chat) */
 :root{ --ccm-glass:rgba(38,38,40,.5); }   /* translucent dark mid-tone grey: the picture still shows through (change this ONE value to retune the pill and every action button) */   /* size of the chevron in the ad link button (the words use the username size) */
 .ccm-cta-pill{
-    position:absolute; left:calc((9px + 7 * var(--ccm-t)) * var(--ccm-s)); bottom:calc((110px + 65 * var(--ccm-t)) * var(--ccm-s)); z-index:6;
+    position:absolute; left:calc((9px + 7 * var(--ccm-t)) * var(--ccm-s)); bottom:calc((100px + 60 * var(--ccm-t)) * var(--ccm-s)); z-index:6;
     display:flex; align-items:center; justify-content:flex-start;
     /* resting (inactive) pill: glass colour, no border */
     box-sizing:border-box;
@@ -1303,7 +1303,7 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
     transition:opacity .3s ease, max-width .3s ease, margin-left .3s ease, font-size .3s ease;
 }
 .ccm-cta-pill.ccm-cta-pill-expanded{
-    right:calc((46px + 28 * var(--ccm-t)) * var(--ccm-s));
+    right:auto; width:calc(100% - (9px + 7 * var(--ccm-t)) * var(--ccm-s) - (46px + 28 * var(--ccm-t)) * var(--ccm-s));
     height:calc(2 * (8px + 5 * var(--ccm-t)) * var(--ccm-s) + var(--ccm-cta-fs));
     padding:0 calc((12px + 6 * var(--ccm-t)) * var(--ccm-s));
     background:var(--cta-color, var(--ccm-accent, #ff4c4c));
@@ -1319,6 +1319,48 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
     font-size:var(--ccm-cta-fs);   /* the chevron's own size */
     line-height:1;
 }
+
+/* ── AD INFO CARD: opens above the ad button (picture + line + tappable questions) ── */
+.ccm-cta-pill.ccm-cta-has-info.ccm-cta-pill-expanded{ border-radius:0 0 8px 8px; }
+/* active button keeps the colour the advertiser chose; its words turn black when that colour is light */
+.ccm-cta-pill.ccm-cta-pill-expanded{ color:var(--cta-ink, #fff); }
+.ccm-cta-pill.ccm-cta-pill-expanded .ccm-cta-pill-text{ color:var(--cta-ink, #fff); }
+/* works on its own from the button colour (no script needed): words go black on a light colour, white on a dark one */
+@supports (color: oklch(from red l c h)){
+    .ccm-cta-pill.ccm-cta-pill-expanded, .ccm-cta-pill.ccm-cta-pill-expanded .ccm-cta-pill-text{ color:oklch(from var(--cta-color, #ff4c4c) clamp(0, (l - 0.72) * -100, 1) 0 0); }
+}
+/* active button: the word sits in the middle, no arrow */
+.ccm-cta-pill.ccm-cta-pill-expanded{ justify-content:center; text-align:center; }
+.ccm-cta-pill.ccm-cta-pill-expanded .ccm-cta-pill-text{ text-align:center; }
+.ccm-cta-pill .ccm-cta-pill-chevron{ display:none !important; }
+.ccm-ad-info{ position:absolute; z-index:6; left:0; right:0; bottom:0; visibility:hidden; pointer-events:none; }
+.ccm-ad-info.show{ visibility:visible; pointer-events:auto; }
+.ccm-ad-info.ccm-sp-hidden{ opacity:0 !important; visibility:hidden !important; pointer-events:none !important; }
+.ccm-ad-info-in{
+    box-sizing:border-box; overflow:hidden;
+    padding:calc(10px * var(--ccm-s, 1)) calc(10px * var(--ccm-s, 1)) calc(9px * var(--ccm-s, 1));
+    background:rgba(34,34,36,.84); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+    border-radius:8px 8px 0 0; color:#fff; box-shadow:0 -6px 22px rgba(0,0,0,.35);
+    opacity:0; transform:translateY(8px);
+    transition:opacity .28s ease, transform .34s cubic-bezier(.22,1,.36,1);
+}
+.ccm-ad-info.show .ccm-ad-info-in{ opacity:1; transform:none; }
+.ccm-ai-head{ display:flex; align-items:center; gap:calc(10px * var(--ccm-s, 1)); }
+.ccm-ai-pic{ width:calc(42px * var(--ccm-s, 1)); height:calc(42px * var(--ccm-s, 1)); flex:none; object-fit:cover; border-radius:4px; background:rgba(255,255,255,.1); }
+.ccm-ai-text{ flex:1; min-width:0; font-size:calc(12.5px * var(--ccm-s, 1)); font-weight:600; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.ccm-ai-label{ margin-top:calc(9px * var(--ccm-s, 1)); font-size:calc(11px * var(--ccm-s, 1)); font-weight:600; opacity:.7; }
+.ccm-ai-head + .ccm-ai-label{ padding-top:calc(9px * var(--ccm-s, 1)); border-top:1px solid rgba(255,255,255,.12); }
+.ccm-ai-qs{ display:flex; gap:calc(6px * var(--ccm-s, 1)); margin:calc(7px * var(--ccm-s, 1)) calc(-10px * var(--ccm-s, 1)) 0; padding:0 calc(10px * var(--ccm-s, 1)); overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; touch-action:pan-x; overscroll-behavior-x:contain; }
+.ccm-ai-qs::-webkit-scrollbar{ display:none; }
+.ccm-ai-q{
+    flex:none; border:0; border-radius:8px; padding:calc(8px * var(--ccm-s, 1)) calc(12px * var(--ccm-s, 1));
+    background:rgba(255,255,255,.14); color:#fff; font:inherit; font-size:calc(12px * var(--ccm-s, 1)); font-weight:600; white-space:nowrap; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; transition:background .2s ease, transform .15s ease, opacity .2s ease;
+}
+.ccm-ai-q:active{ transform:scale(.96); background:rgba(255,255,255,.22); }
+.ccm-ai-q.busy{ opacity:.55; pointer-events:none; }
+.ccm-ai-q.sent{ background:rgba(255,255,255,.26); }
+.ccm-ai-q i{ font-size:1.05em; vertical-align:-1px; }
 
 #ccm-nav-hint{
     position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
@@ -1691,7 +1733,7 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
 .ccm-hlayer{ position:absolute; inset:0; width:100%; height:100%; background:#000; will-change:transform; }
 
 .ccm-connected-tag{
-    position:absolute; left:calc((9px + 7 * var(--ccm-t)) * var(--ccm-s)); bottom:calc((128px + 65 * var(--ccm-t)) * var(--ccm-s)); z-index:6;
+    position:absolute; left:calc((9px + 7 * var(--ccm-t)) * var(--ccm-s)); bottom:calc((118px + 60 * var(--ccm-t)) * var(--ccm-s)); z-index:6;
     display:flex; align-items:center; gap:calc((5px + 3 * var(--ccm-t)) * var(--ccm-s));
     padding:calc((2.5px + 1.5 * var(--ccm-t)) * var(--ccm-s)) calc((8px + 5 * var(--ccm-t)) * var(--ccm-s)) calc((2.5px + 1.5 * var(--ccm-t)) * var(--ccm-s)) calc((6px + 4 * var(--ccm-t)) * var(--ccm-s));
     border-radius:calc((6px + 2 * var(--ccm-t)) * var(--ccm-s));
@@ -1719,6 +1761,8 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
     -webkit-tap-highlight-color:transparent;
 }
 .ccm-cta-pill.ccm-poll-pill:active{ transform:scale(.97); opacity:.8; }
+/* inactive -> active: the button grows smoothly (width, height, padding, colour) instead of snapping */
+.ccm-cta-pill{ transition:width .55s cubic-bezier(.22,1,.36,1), height .55s cubic-bezier(.22,1,.36,1), padding .55s cubic-bezier(.22,1,.36,1), font-size .55s cubic-bezier(.22,1,.36,1), border-radius .55s ease, background-color .45s ease, box-shadow .55s ease, opacity .22s ease, transform .22s ease, visibility .22s ease; }
 .ccm-poll-ico{ width:calc(15px * var(--ccm-s)); height:calc(15px * var(--ccm-s)); flex:0 0 auto; display:block; }
 /* resting CTA pill + poll pill thinner: phone = 12.5% less, desktop = 10% less (thickness and text) */
 :root{ --ccm-pill-k:.875; }
@@ -1728,7 +1772,7 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
 .ccm-cta-pill.ccm-poll-pill{ font-size:calc((11px + 1.5 * var(--ccm-t)) * var(--ccm-s) * var(--ccm-pill-k)); }
 .ccm-poll-ico{ width:calc(15px * var(--ccm-s) * var(--ccm-pill-k)); height:calc(15px * var(--ccm-s) * var(--ccm-pill-k)); }
 /* sits below the CTA pill when the post is both an ad and connected */
-.ccm-connected-tag.ccm-connected-below-cta{ bottom:calc((83px + 65 * var(--ccm-t)) * var(--ccm-s)); }
+.ccm-connected-tag.ccm-connected-below-cta{ bottom:calc((73px + 60 * var(--ccm-t)) * var(--ccm-s)); }
 .ccm-connected-tag.ccm-connected-below-cta.ccm-sp-raised{ bottom:calc((95px + 73 * var(--ccm-t)) * var(--ccm-s)); }
 /* View Zeem button: same background design as the voted / resting CTA pill (glass, no border, no shadow) */
 .ccm-connected-tag, .ccm-connected-tag:hover{ background:var(--ccm-glass); border:0; box-shadow:none; }
@@ -1739,12 +1783,12 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
    - dashes or the video progress bar showing: 8% higher
    - Interested / Share-in-chat buttons showing: 38px + 8% higher */
 .ccm-pill-co{ --ccm-pill-lift:calc(var(--ccm-poster-h, 40px) * .5); }
-.ccm-cta-pill.ccm-pill-co{ bottom:calc((110px + 65 * var(--ccm-t)) * var(--ccm-s) + var(--ccm-pill-lift)); }
+.ccm-cta-pill.ccm-pill-co{ bottom:calc((100px + 60 * var(--ccm-t)) * var(--ccm-s) + var(--ccm-pill-lift)); }
 .ccm-cta-pill.ccm-pill-co.ccm-sp-raised{ bottom:calc((122px + 73 * var(--ccm-t)) * var(--ccm-s) + var(--ccm-pill-lift)); }
-.ccm-connected-tag.ccm-pill-co{ bottom:calc((128px + 65 * var(--ccm-t)) * var(--ccm-s) + var(--ccm-pill-lift)); }
-.ccm-connected-tag.ccm-pill-co.ccm-connected-below-cta{ bottom:calc((83px + 65 * var(--ccm-t)) * var(--ccm-s) + var(--ccm-pill-lift)); }
+.ccm-connected-tag.ccm-pill-co{ bottom:calc((118px + 60 * var(--ccm-t)) * var(--ccm-s) + var(--ccm-pill-lift)); }
+.ccm-connected-tag.ccm-pill-co.ccm-connected-below-cta{ bottom:calc((73px + 60 * var(--ccm-t)) * var(--ccm-s) + var(--ccm-pill-lift)); }
 #ccm-slide:has(.ccm-media-dashes) .ccm-cta-pill, #ccm-slide:has(.ccm-media-dashes) .ccm-connected-tag,
-#ccm-slide:has(.ccm-video-progress[style*="display:flex"]) .ccm-cta-pill, #ccm-slide:has(.ccm-video-progress[style*="display:flex"]) .ccm-connected-tag{ margin-bottom:calc((110px + 65 * var(--ccm-t)) * var(--ccm-s) * .08); }
+#ccm-slide:has(.ccm-video-progress[style*="display:flex"]) .ccm-cta-pill, #ccm-slide:has(.ccm-video-progress[style*="display:flex"]) .ccm-connected-tag{ margin-bottom:calc(((110px + 65 * var(--ccm-t)) * .08 + 10px + 5 * var(--ccm-t)) * var(--ccm-s)); }
 #cardCaptionModal:is(.ccm-asking,.ccm-ask-pending) .ccm-cta-pill, #cardCaptionModal:is(.ccm-asking,.ccm-ask-pending) .ccm-connected-tag,
 #cardCaptionModal .ccm-slide:has(.ccm-ask-static) .ccm-cta-pill, #cardCaptionModal .ccm-slide:has(.ccm-ask-static) .ccm-connected-tag{ margin-bottom:calc((38px + 0.08 * (110px + 65 * var(--ccm-t))) * var(--ccm-s)); }
 
@@ -1991,6 +2035,9 @@ a.ccm-tag-link:hover, a.ccm-mention-link:hover{ text-decoration:underline !impor
     flex:1;color:#fff;font-size:calc((11px + 2.5 * var(--ccm-t)) * var(--ccm-s));font-weight:500;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+.share-user-name{ display:flex; align-items:center; gap:calc(5px * var(--ccm-s)); min-width:0; }
+.share-user-name-t{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ccm-vbadge-share{ width:calc((13px + 2 * var(--ccm-t)) * var(--ccm-s)); height:calc((13px + 2 * var(--ccm-t)) * var(--ccm-s)); flex:none; color:var(--ccm-accent, #FF2D2D); }
 .share-user-check{
     width:calc((18px + 4 * var(--ccm-t)) * var(--ccm-s));height:calc((18px + 4 * var(--ccm-t)) * var(--ccm-s));border-radius:50%;
     border:calc((1.5px + .5 * var(--ccm-t)) * var(--ccm-s)) solid rgba(255,255,255,.25);

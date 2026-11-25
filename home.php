@@ -85,12 +85,19 @@ if ('serviceWorker' in navigator) {
 .hp-topbar .hft-plus i{font-size:inherit !important;line-height:1}
 .hp-topbar .hft-plus{position:relative;top:-5px;margin-right:clamp(1px,.5vw,3px) !important;transform:translateX(18%)}   /* same line as the Dezzme word, a little more to the left */
 /* post media box — same mechanics as the immersive post viewer (profile): fixed box, slides fill it, multi-photo slides fit inside */
+#ipvList .ipv-cta-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box;width:100%;min-height:44px;padding:0 16px;background:var(--cta-color,#FF4C4C);color:var(--cta-ink,#fff);text-decoration:none;font-weight:600;font-size:14px;line-height:1.2;-webkit-tap-highlight-color:transparent;transition:filter .15s ease}
+#ipvList .ipv-cta-bar:active{filter:brightness(.92)}
+#ipvList .ipv-cta-bar-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ipvList .ipv-cta-bar svg{flex:none}
 #ipvList .ipv-media-wrap:not(.ipv-textonly){position:relative;width:100%;background:#000;overflow:hidden;aspect-ratio:4/4.2;transition:height .18s ease;touch-action:pan-y}
 #ipvList .ipv-media-wrap.ipv-multi:not(.ipv-textonly){aspect-ratio:4/3.5}
-#ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-track{display:flex;height:100%;transition:transform .28s cubic-bezier(.22,1,.36,1);will-change:transform}
+#ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-track{display:flex;position:absolute;top:0;left:0;right:0;bottom:0;height:auto;transition:transform .28s cubic-bezier(.22,1,.36,1);will-change:transform}
 #ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-item{flex:0 0 100%;min-width:0;height:100%;position:relative;background:#000}
 #ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-item img,#ipvList .ipv-media-wrap:not(.ipv-textonly) .ipv-media-item video{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
 #ipvList .ipv-media-wrap.ipv-multi .ipv-media-item{display:flex;align-items:center;justify-content:center}
+/* the picture fills its slide by absolute position (not by percentage height) so every browser, iPhone included, centres it the same */
+#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item{align-self:stretch;height:auto}
+#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item img,#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item video{position:absolute;top:0;left:0;width:100%;height:100%;object-position:center center}
 /* multi-photo posts: same fit as the immersive viewer — whole picture inside the box (black bars), only near-box-shaped pictures fill it */
 #ipvList .ipv-media-wrap.ipv-multi .ipv-media-item img:not(.ipv-fit-cover),#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item video:not(.ipv-fit-cover){object-fit:contain !important;background:#000}
 #ipvList .ipv-media-wrap.ipv-multi .ipv-media-item img.ipv-fit-cover,#ipvList .ipv-media-wrap.ipv-multi .ipv-media-item video.ipv-fit-cover{object-fit:cover !important}
@@ -601,7 +608,9 @@ function renderPost(p){
 
     var cta='';
     if(p.isAd && p.adCtaUrl){
-        cta='<a href="'+esc(dzSafeUrl(p.adCtaUrl))+'" target="_blank" rel="noopener" class="ipv-cta-pill'+''+'" data-meme-id="'+p.id+'" style="--cta-color:'+esc(p.adCtaColor||'#FF4C4C')+';" onclick="event.stopPropagation()"><span class="ipv-cta-pill-text">'+esc(p.adCtaText||'Learn more')+'</span><i class="ri-arrow-right-s-line ipv-cta-pill-chevron"></i></a>';
+        /* ad button: a full-width bar under the picture (not on top of it), in the colour the advertiser chose */
+        var _ctaCol=p.adCtaColor||'#FF4C4C';
+        cta='<a href="'+esc(dzSafeUrl(p.adCtaUrl))+'" target="_blank" rel="noopener" class="ipv-cta-bar" data-meme-id="'+p.id+'" style="--cta-color:'+esc(_ctaCol)+';--cta-ink:'+dzCtaInk(_ctaCol)+';" onclick="event.stopPropagation()"><span class="ipv-cta-bar-text">'+esc(p.adCtaText||'Learn more')+'</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>';
     }
 
     var controls='';
@@ -681,7 +690,7 @@ function renderPost(p){
             '<button type="button" class="ipv-kebab index-kebab-btn" data-id="'+p.id+'" onclick="event.stopPropagation();openIndexSheet('+p.id+')"><i class="ri-menu-line"></i></button>'+
         '</div>'+
         headerCap+
-        '<div class="'+wrapClass+'" data-count="'+mc+'" data-active-idx="0">'+(isTextOnly?(topLeft+topRight+mediaInner+strip+cta+partner):(topLeft+topRight+strip+cta+mediaInner+arrows+controls+partner+dotsHtml))+'</div>'+
+        '<div class="'+wrapClass+'" data-count="'+mc+'" data-active-idx="0">'+(isTextOnly?(topLeft+topRight+mediaInner+strip+partner):(topLeft+topRight+strip+mediaInner+arrows+controls+partner+dotsHtml))+'</div>'+cta+
         '<div class="ipv-actions"><div class="ipv-actions-left">'+
             '<div class="ipv-action-group"><button type="button" class="ipv-action-btn like-btn'+(p.liked?' active':'')+'" data-id="'+p.id+'" onclick="event.stopPropagation();hpAction('+p.id+',\'like\',this)"><i class="sp-rp sp-ic sp-fillable"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></i></button>'+cntHtml('like-count',p.hideLikes,p.likeCount)+'</div>'+
             (p.isAd?'':'<div class="ipv-action-group"><button type="button" class="ipv-action-btn repost-btn'+(p.reposted?' active':'')+'" data-id="'+p.id+'" onclick="event.stopPropagation();hpAction('+p.id+',\'repost\',this)"><i class="sp-rp sp-ic"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.5V9.276A4.276 4.276 0 0 1 8.276 5H16M12.5 1.5L16 5L12.5 8.5"/><path d="M4 13.5V9.276A4.276 4.276 0 0 1 8.276 5H16M12.5 1.5L16 5L12.5 8.5" transform="rotate(180 12 12)"/></svg></i></button>'+cntHtml('repost-count',p.hideReposts,p.repostCount)+'</div>')+
@@ -697,6 +706,16 @@ function renderPost(p){
 function hpCollabOf(id){var a=[].concat((typeof peuraFeed!=='undefined'&&peuraFeed)||[],window._risePool||[]);for(var i=0;i<a.length;i++){if(String(a[i].id)===String(id))return a[i].collab||null}return null}
 function dzCollabFit(){document.querySelectorAll('.av-wrap.ipv-collab:not([data-fit])').forEach(function(w){var h=w.closest('.ipv-header')||w.parentNode;var pr=document.createElement('span');pr.className='av-wrap';pr.style.cssText='position:absolute;visibility:hidden;left:-9999px;top:0';pr.innerHTML='<img class="ipv-avatar" alt="">';h.appendChild(pr);var s=pr.firstChild.getBoundingClientRect().width;h.removeChild(pr);if(s>8){w.style.setProperty('--cw',Math.round(s*1.45)+'px');w.setAttribute('data-fit','1');}});}
 (function(){var t=0;function q(){if(t)return;t=requestAnimationFrame(function(){t=0;dzCollabFit();});}try{new MutationObserver(q).observe(document.documentElement,{childList:true,subtree:true});}catch(e){}window.addEventListener('resize',function(){document.querySelectorAll('.av-wrap.ipv-collab[data-fit]').forEach(function(w){w.removeAttribute('data-fit');});q();});q();})();
+/* black words on a light button colour, white words on a dark one */
+function dzCtaInk(c){
+    c=String(c||'').trim().toLowerCase();var r,g,b,m;
+    if((m=/^#([0-9a-f]{3})$/.exec(c))){r=parseInt(m[1][0]+m[1][0],16);g=parseInt(m[1][1]+m[1][1],16);b=parseInt(m[1][2]+m[1][2],16);}
+    else if((m=/^#([0-9a-f]{6})/.exec(c))){r=parseInt(m[1].slice(0,2),16);g=parseInt(m[1].slice(2,4),16);b=parseInt(m[1].slice(4,6),16);}
+    else if((m=/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/.exec(c))){r=+m[1];g=+m[2];b=+m[3];}
+    else if(c==='white')return '#000';
+    else return '#fff';
+    return (0.2126*r+0.7152*g+0.0722*b)>160?'#000':'#fff';
+}
 function skeletonHTML(n){
     var one='<div class="ipv-skel-post"><div class="ipv-skel-header"><div class="ipv-skel-avatar"></div><div class="ipv-skel-header-lines"><div class="ipv-skel-line w1"></div><div class="ipv-skel-line w2"></div></div></div><div class="ipv-skel-media"></div><div class="ipv-skel-actions"><div class="ipv-skel-icon"></div><div class="ipv-skel-icon"></div><div class="ipv-skel-icon"></div><div class="ipv-skel-icon"></div></div><div class="ipv-skel-cap"></div><div class="ipv-skel-cap2"></div></div>';
     return new Array(n+1).join(one);
@@ -1390,13 +1409,7 @@ function fillRiseSlots(){
             switchers[id]=setInterval(function(){ panes[i].classList.remove('active'); i=(i+1)%panes.length; panes[i].classList.add('active'); },5000);
         });
     }
-    function initCtaCycles(posts){
-        posts.forEach(function(post){
-            var pill=post.querySelector('.ipv-cta-pill'); if(!pill) return;
-            var on=false;
-            ctaTimers[post.dataset.id]=setInterval(function(){ on=!on; pill.classList.toggle('ipv-cta-pill-expanded',on); },3000);
-        });
-    }
+    function initCtaCycles(posts){ /* the ad button is now a steady bar under the picture: nothing to cycle */ }
 
     var MULTI_RATIO=3.5/4, MULTI_TOL=.15, LONG_RATIO=1.2;
     window.hpMeasure=function(el){
@@ -1423,7 +1436,18 @@ function fillRiseSlots(){
     document.addEventListener('DOMContentLoaded',queueSweep); window.addEventListener('load',queueSweep);
     (function(){ var host=document.getElementById('ipvList'); if(host&&window.MutationObserver) new MutationObserver(queueSweep).observe(host,{childList:true,subtree:true}); })();
     function applyAspect(wrap,ratio){
-        var c=Math.max(.55,Math.min(ratio,1.6)), width=wrap.clientWidth||wrap.offsetWidth; if(!width) return;
+        var c=Math.max(.55,Math.min(ratio,1.6)), width=wrap.clientWidth||wrap.offsetWidth;
+        wrap._ipvRatio=c;
+        /* the box can have no width yet when the picture loads (list still hidden, scrollbar not there yet): keep watching its width, so it is sized the moment it has one and again whenever its width changes */
+        if(!wrap._ipvRO&&window.ResizeObserver){
+            wrap._ipvRO=new ResizeObserver(function(){
+                var w=wrap.clientWidth||wrap.offsetWidth;
+                if(w&&w!==wrap._ipvW&&wrap._ipvRatio&&!wrap.classList.contains('ipv-multi')){ wrap._ipvW=w; wrap.style.aspectRatio='auto'; wrap.style.height=Math.round(w*wrap._ipvRatio)+'px'; }
+            });
+            wrap._ipvRO.observe(wrap);
+        }
+        if(!width) return;
+        wrap._ipvW=width;
         wrap.style.aspectRatio='auto'; wrap.style.height=Math.round(width*c)+'px';
         var post=wrap.closest('.ipv-post'); if(post) post.classList.toggle('ipv-long-header',c>=LONG_RATIO);
     }

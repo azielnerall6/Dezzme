@@ -1583,7 +1583,7 @@ if(isset($_GET['type'])){
     } elseif($type === 'following'){
         $following_list = [];
         if($user_id){
-            $stmt = $conn->prepare("SELECT u.id, u.username, u.profile_pic FROM followers f JOIN users u ON u.id = f.following_id WHERE f.follower_id = ? AND u.deactivated_at IS NULL AND LOWER(COALESCE(u.user_rank,'')) NOT IN ('suspended','banned') ORDER BY u.username ASC");
+            $stmt = $conn->prepare("SELECT u.id, u.username, u.profile_pic, COALESCE(u.is_verified,0) AS is_verified FROM followers f JOIN users u ON u.id = f.following_id WHERE f.follower_id = ? AND u.deactivated_at IS NULL AND LOWER(COALESCE(u.user_rank,'')) NOT IN ('suspended','banned') ORDER BY u.username ASC");
             $stmt->bind_param("i", $user_id);
             $stmt->execute();
             $res = $stmt->get_result();

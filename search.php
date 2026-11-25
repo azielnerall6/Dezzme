@@ -1,4 +1,167 @@
-<?php $DZ_PAGE='search'; require_once 'shared_core.php'; ?>
+<?php
+/* ============ news / sports / entertainment strip: data layer (cached, never blocks the page) ============ */
+if (!function_exists('dzns_feed')) {
+    function dzns_file($key){ return sys_get_temp_dir().'/dzns_'.md5($key).'.json'; }
+    function dzns_peek($key, $ttl){        /* -> [data|null, fresh?]  (stale data is still returned) */
+        $f = dzns_file($key); if (!is_file($f)) return [null, false];
+        $d = json_decode(@file_get_contents($f), true); if (!is_array($d)) return [null, false];
+        return [$d, (time() - filemtime($f)) < $ttl];
+    }
+    function dzns_multi($urls, $verify = true){            /* parallel GET, 3 s ceiling */
+        $mh = curl_multi_init(); $ch = [];
+        foreach ($urls as $k => $u) {
+            $c = curl_init($u);
+            curl_setopt_array($c, [CURLOPT_RETURNTRANSFER=>1, CURLOPT_FOLLOWLOCATION=>1, CURLOPT_TIMEOUT=>3, CURLOPT_CONNECTTIMEOUT=>2,
+                CURLOPT_USERAGENT=>'Mozilla/5.0 (compatible; Dezzme/1.0)', CURLOPT_SSL_VERIFYPEER=>$verify, CURLOPT_SSL_VERIFYHOST=>$verify ? 2 : 0]);
+            curl_multi_add_handle($mh, $c); $ch[$k] = $c;
+        }
+        do { curl_multi_exec($mh, $run); if ($run) curl_multi_select($mh, 0.2); } while ($run);
+        $out = [];
+        foreach ($ch as $k => $c) { $out[$k] = (curl_getinfo($c, CURLINFO_HTTP_CODE) == 200) ? curl_multi_getcontent($c) : ''; curl_multi_remove_handle($mh, $c); curl_close($c); }
+        curl_multi_close($mh);
+        if ($verify && !array_filter($out)) return dzns_multi($urls, false);   /* XAMPP often has no CA bundle: public read-only feeds, retry once */
+        return $out;
+    }
+    function dzns_url($u){ return (preg_match('#^https?://#i', (string)$u)) ? $u : ''; }
+    function dzns_make_news(){
+        $SRC = [['BBC','https://feeds.bbci.co.uk/news/rss.xml','news'], ['BBC Tech','https://feeds.bbci.co.uk/news/technology/rss.xml','tech'],
+                ['BBC Sport','https://feeds.bbci.co.uk/sport/rss.xml','sport'], ['Al Jazeera','https://www.aljazeera.com/xml/rss/all.xml','news'],
+                ['BBC Entertainment','https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml','ent'],
+                ['BBC Africa','https://feeds.bbci.co.uk/news/world/africa/rss.xml','news'], ['Guardian','https://www.theguardian.com/world/rss','news'],
+                ['Guardian Sport','https://www.theguardian.com/sport/rss','sport'], ['Guardian Culture','https://www.theguardian.com/culture/rss','ent'],
+                ['Guardian Football','https://www.theguardian.com/football/rss','sport']];
+        $raw = dzns_multi(array_column($SRC, 1)); $items = [];
+        foreach ($SRC as $i => $src) {
+            if (empty($raw[$i])) continue;
+            $prev = libxml_use_internal_errors(true);
+            $x = @simplexml_load_string($raw[$i], 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NONET);
+            libxml_use_internal_errors($prev);
+            if (!$x || !isset($x->channel->item)) continue;
+            $n = 0;
+            foreach ($x->channel->item as $it) {
+                if ($n >= 8) break;
+                $title = trim(html_entity_decode(strip_tags((string)$it->title), ENT_QUOTES, 'UTF-8'));
+                $link  = dzns_url(trim((string)$it->link));
+                if ($title === '' || $link === '') continue;
+                $img = '';
+                foreach (['.//*[local-name()="thumbnail"][@url]', './/*[local-name()="content"][@url]', './enclosure[@url]'] as $xp) {
+                    $f = @$it->xpath($xp);
+                    if ($f) { foreach ($f as $node) { $u = (string)$node['url']; $ty = (string)$node['type']; if ($u !== '' && ($ty === '' || stripos($ty, 'image') === 0)) { $img = $u; break 2; } } }
+                }
+                if ($img === '') {
+                    $html = (string)$it->description . ' ' . (string)(@$it->xpath('.//*[local-name()="encoded"]')[0] ?? '');
+                    if (preg_match('#<img[^>]+src=["\']([^"\']+)#i', $html, $mm)) $img = html_entity_decode($mm[1]);
+                }
+                $img = dzns_url($img);
+                $img = preg_replace('#/(standard|news)/(\d+)/#', '/$1/480/', $img);
+                $items[] = ['t'=>mb_substr($title,0,140), 'u'=>$link, 'i'=>$img, 's'=>$src[0], 'ts'=>(int)strtotime((string)$it->pubDate), 'k'=>$src[2]];
+                $n++;
+            }
+        }
+        usort($items, function($a,$b){ return $b['ts'] <=> $a['ts']; });
+        $by = []; foreach ($items as $it) $by[$it['s']][] = $it;
+        $mix = []; $more = true;
+        while ($more) { $more = false; foreach ($by as $s => &$list) { if ($list) { $mix[] = array_shift($list); $more = true; } } unset($list); }
+        return array_slice($mix, 0, 60);
+    }
+    function dzns_make_sports(){
+        $SP = [['Premier League','soccer/eng.1'], ['Champions League','soccer/uefa.champions'], ['NBA','basketball/nba'], ['NFL','football/nfl'], ['La Liga','soccer/esp.1'], ['Serie A','soccer/ita.1'], ['Bundesliga','soccer/ger.1'], ['MLB','baseball/mlb'], ['NHL','hockey/nhl']];
+        $raw = dzns_multi(array_map(function($s){ return 'https://site.api.espn.com/apis/site/v2/sports/'.$s[1].'/scoreboard'; }, $SP));
+        $games = [];
+        foreach ($SP as $i => $lg) {
+            $j = json_decode($raw[$i] ?? '', true);
+            if (!is_array($j) || empty($j['events'])) continue;
+            foreach ($j['events'] as $ev) {
+                $c = $ev['competitions'][0] ?? null; if (!$c || count($c['competitors'] ?? []) < 2) continue;
+                $home = $away = null;
+                foreach ($c['competitors'] as $t) { if (($t['homeAway'] ?? '') === 'home') $home = $t; else $away = $t; }
+                if (!$home || !$away) continue;
+                $st = $ev['status']['type'] ?? []; $state = $st['state'] ?? 'pre';
+                $mk = function($t){ return ['n'=>$t['team']['shortDisplayName'] ?? ($t['team']['displayName'] ?? '?'), 'a'=>$t['team']['abbreviation'] ?? '', 'l'=>dzns_url($t['team']['logo'] ?? ''), 's'=>($t['score'] ?? '')]; };
+                $games[] = ['lg'=>$lg[0], 'st'=>$state, 'tx'=>($state==='in' ? ($ev['status']['displayClock'] ?? '').' '.($st['shortDetail'] ?? '') : ($st['shortDetail'] ?? '')),
+                            'ts'=>(int)strtotime($ev['date'] ?? ''), 'h'=>$mk($home), 'a'=>$mk($away), 'u'=>dzns_url($ev['links'][0]['href'] ?? '')];
+            }
+        }
+        $rank = ['in'=>0, 'pre'=>1, 'post'=>2];
+        usort($games, function($a,$b) use ($rank){ if ($a['st']!==$b['st']) return $rank[$a['st']] <=> $rank[$b['st']];
+            return $a['st']==='post' ? $b['ts'] <=> $a['ts'] : $a['ts'] <=> $b['ts']; });
+        return array_slice($games, 0, 40);
+    }
+    /* $fetch=false: only read what is already cached (instant). $fetch=true: refresh anything stale (may wait on other sites). */
+    function dzns_feed($fetch){
+        $res = []; $stale = false;
+        foreach (['news'=>['news3',600,'dzns_make_news'], 'sports'=>['sports3',45,'dzns_make_sports']] as $k => $cfg) {
+            list($d, $fresh) = dzns_peek($cfg[0], $cfg[1]);
+            if (!$fresh && $fetch) {
+                $new = call_user_func($cfg[2]);
+                if ($new) { @file_put_contents(dzns_file($cfg[0]), json_encode($new), LOCK_EX); $d = $new; $fresh = true; }
+            }
+            if (!$fresh) $stale = true;
+            $res[$k] = $d ?: [];
+        }
+        $res['stale'] = $stale;
+        return $res;
+    }
+    /* Dezzme posts about news / sports / entertainment: a hashtag (#news, #sports, #movies …) OR the word in the caption.
+       Category: sports > entertainment > news. On a database error the message is kept in $GLOBALS['dzns_perr']. */
+    function dzns_posts($conn){
+        $out = [];
+        $GLOBALS['dzns_perr'] = '';
+        $SP = ['sports','sport','football','soccer','nba','nfl','basketball']; $EN = ['entertainment','movies','movie','music','celebrity','celebrities','showbiz','nollywood','film','tv'];
+        $NW = ['news','breaking','headlines'];
+        $tags = array_merge($SP, $EN, $NW);
+        $tagList = "'" . implode("','", $tags) . "'";
+        $likes = ['news','sport','football','entertainment','movie','music','celebrity','showbiz','nollywood'];
+        $likeSql = implode(' OR ', array_map(function($w){ return "m.caption LIKE '%$w%'"; }, $likes));
+        try {
+            $sql = "SELECT m.id, m.caption, m.file_name AS pfile, m.type AS ptype, u.username, u.profile_pic,
+                       (SELECT mm.file_name FROM meme_media mm WHERE mm.meme_id = m.id ORDER BY mm.position ASC LIMIT 1) AS mfile,
+                       (SELECT mm.type FROM meme_media mm WHERE mm.meme_id = m.id ORDER BY mm.position ASC LIMIT 1) AS mtype,
+                       (SELECT GROUP_CONCAT(t.tag) FROM dz_meme_tags t WHERE t.meme_id = m.id) AS tg
+                    FROM memes m JOIN users u ON u.id = m.uploaded_by
+                    WHERE m.is_archived = 0 AND COALESCE(m.is_ad,0) = 0 AND u.deactivated_at IS NULL
+                      AND LOWER(COALESCE(u.user_rank,'')) NOT IN ('suspended','banned')
+                      AND NOT EXISTS (SELECT 1 FROM group_posts gpx JOIN `groups` gx ON gx.id = gpx.group_id WHERE gpx.meme_id = m.id AND gx.is_suspended = 1)
+                      AND (EXISTS (SELECT 1 FROM dz_meme_tags t WHERE t.meme_id = m.id AND t.tag IN ($tagList)) OR $likeSql)
+                    ORDER BY m.id DESC LIMIT 80";
+            $r = $conn->query($sql);
+            while ($r && ($row = $r->fetch_assoc())) {
+                /* the post's own picture/video is memes.file_name; meme_media only holds the extra items of multi-media posts */
+                $mf = ''; $mt = '';
+                $okT = ['image','video','gif','sticker','stickers'];
+                if (!empty($row['pfile']) && $row['pfile'] !== '0' && in_array(strtolower((string)$row['ptype']), $okT, true)) { $mf = (string)$row['pfile']; $mt = strtolower((string)$row['ptype']); }
+                elseif (!empty($row['mfile']) && $row['mfile'] !== '0' && in_array(strtolower((string)$row['mtype']), $okT, true)) { $mf = (string)$row['mfile']; $mt = strtolower((string)$row['mtype']); }
+                $img = ''; $vid = '';
+                if ($mf !== '') {
+                    if ($mt === 'video') { $img = function_exists('dz_thumb_url') ? (string)dz_thumb_url('uploads/'.$mf) : ''; $vid = 'uploads/'.$mf; }
+                    else $img = 'uploads/'.$mf;
+                }
+                $cap = trim(strip_tags((string)$row['caption'])); $low = strtolower($cap);
+                $tg = array_filter(explode(',', strtolower((string)$row['tg'])));
+                $has = function($list) use ($tg, $low){ foreach ($list as $w) { if (strpos($low, $w) !== false) return true; foreach ($tg as $t) { if (strpos($t, $w) !== false) return true; } } return false; };
+                $k = $has(['sport','football','soccer','nba','nfl','basketball']) ? 'sports'
+                   : ($has(['entertainment','movie','music','celebrit','showbiz','nollywood','film']) ? 'ent'
+                   : ($has($NW) ? 'news' : ''));
+                if ($k === '') continue;
+                $out[] = ['id'=>(int)$row['id'], 'c'=>mb_substr($cap, 0, 140), 'i'=>$img, 'v'=>$vid, 'n'=>(string)$row['username'], 'p'=>(string)($row['profile_pic'] ?: 'mee.jpg'), 'k'=>$k];
+            }
+        } catch (Throwable $e) { $out = []; $GLOBALS['dzns_perr'] = $e->getMessage(); }
+        shuffle($out);   /* a different mix every visit */
+        return $out;
+    }
+}
+/* refresh call from the page (search.php?dz_ns=1): updates the cache, returns the new data */
+if (isset($_GET['dz_ns'])) {
+    header('Content-Type: application/json; charset=utf-8'); header('Cache-Control: no-store');
+    $o = dzns_feed(true); $o['curl'] = function_exists('curl_init');
+    echo json_encode($o, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); exit;
+}
+?>
+<?php $DZ_PAGE='search'; require_once 'shared_core.php';
+/* strip data, read straight from the cache so it is in the page's first paint (no waiting on other websites) */
+$DZNS = null;
+if (($tag ?? 'all') === 'all' || ($tag ?? '') === '') { $DZNS = dzns_feed(false); $DZNS['posts'] = dzns_posts($conn); $DZNS['perr'] = $GLOBALS['dzns_perr'] ?? ''; $DZNS['curl'] = function_exists('curl_init'); }
+?>
 <?php
 /* Server-rendered captions arrive as ready-made HTML (hashtag / mention links). Whatever they contain, only harmless
    formatting survives: <a> (http/relative href only), <span>, <b>, <i>, <strong>, <em>, <br>. Scripts, event handlers
@@ -51,6 +214,16 @@ if (!function_exists('dz_clean_caption_html')) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dezzme | Search</title>
 <script>/* only http(s) / relative links are allowed for user-supplied URLs (blocks javascript: and data: links) */
+/* black words on a light button colour, white words on a dark one */
+function dzCtaInk(c){
+    c=String(c||'').trim().toLowerCase();var r,g,b,m;
+    if((m=/^#([0-9a-f]{3})$/.exec(c))){r=parseInt(m[1][0]+m[1][0],16);g=parseInt(m[1][1]+m[1][1],16);b=parseInt(m[1][2]+m[1][2],16);}
+    else if((m=/^#([0-9a-f]{6})/.exec(c))){r=parseInt(m[1].slice(0,2),16);g=parseInt(m[1].slice(2,4),16);b=parseInt(m[1].slice(4,6),16);}
+    else if((m=/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/.exec(c))){r=+m[1];g=+m[2];b=+m[3];}
+    else if(c==='white')return '#000';
+    else return '#fff';
+    return (0.2126*r+0.7152*g+0.0722*b)>160?'#000':'#fff';
+}
 window.dzSafeUrl = function(u){ u=String(u==null?'':u).trim(); if(/^(https?:)?\/\//i.test(u)) return u; if(/^[a-z][a-z0-9+.\-]*:/i.test(u)) return '#'; return u; };</script>
 <style>
 /* mute / unmute icon (custom speaker) */
@@ -81,7 +254,6 @@ window.dzSafeUrl = function(u){ u=String(u==null?'':u).trim(); if(/^(https?:)?\/
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-<?php dz_hashtags_styles(); /* shared hashtag bar CSS (hashtags.php) */ ?>
 <link rel="stylesheet" href="theme_css.php?v=<?= @filemtime(__DIR__.'/theme_css.php') ?>">
 <style>
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -319,6 +491,11 @@ body{
 .ipv-partnership-tag{ position:absolute; z-index:7; left:calc(clamp(8px, 7.02px + 0.59vw, 12px) * var(--ccm-s)); bottom:calc(clamp(22px, 18.05px + 1.73vw, 34px) * var(--ccm-s)); display:inline-flex; align-items:center; gap:calc(clamp(4px, 3.47px + 0.24vw, 6px) * var(--ccm-s)); padding:calc(clamp(3px, 2.51px + 0.3vw, 5px) * var(--ccm-s)) calc(clamp(6px, 5.02px + 0.59vw, 10px) * var(--ccm-s)); border-radius:calc(clamp(7px, 7.54px + 0.08vw, 8px) * var(--ccm-s)); background:rgba(0,0,0,0.55); color:#ff4c4c; font-size:calc(clamp(9px, 8.51px + 0.3vw, 11px) * var(--ccm-s)); font-weight:600; max-width:calc(100% - 24px); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); pointer-events:none; transition:opacity .25s ease, visibility .25s ease; }
 .ipv-partnership-tag i{ font-size:calc(clamp(10px, 9.51px + 0.45vw, 13px) * var(--ccm-s)); flex-shrink:0; }
 .ipv-partnership-tag b{ color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* ad button: a full-width bar under the picture (same as home) */
+.ipv-post .ipv-cta-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box;width:100%;min-height:44px;padding:0 16px;background:var(--cta-color,#FF4C4C);color:var(--cta-ink,#fff);text-decoration:none;font-weight:600;font-size:14px;line-height:1.2;-webkit-tap-highlight-color:transparent;transition:filter .15s ease}
+.ipv-post .ipv-cta-bar:active{filter:brightness(.92)}
+.ipv-post .ipv-cta-bar-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ipv-post .ipv-cta-bar svg{flex:none}
 .ipv-cta-pill{ position:absolute; left:calc(clamp(8px, 7.02px + 0.59vw, 12px) * var(--ccm-s)); bottom:calc(clamp(22px, 18.05px + 1.73vw, 30px) * var(--ccm-s)); z-index:6; display:flex; align-items:center; justify-content:flex-start; padding:calc(clamp(6px, 5.01px + 0.43vw, 9px) * var(--ccm-s)) calc(clamp(9px, 8.02px + 0.59vw, 14px) * var(--ccm-s)); border-radius:8px; background:rgba(30,30,34,.55); border:1px solid rgba(255,255,255,.28); color:#fff; font-weight:700; font-size:calc(clamp(9px, 8.51px + 0.3vw, 11.5px) * var(--ccm-s)); text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.3); white-space:nowrap; overflow:hidden; max-width:calc(100% - 24px); transition:padding .4s cubic-bezier(.22,1,.36,1), background .4s ease, border-color .4s ease,
                box-shadow .4s ease, min-width .4s cubic-bezier(.22,1,.36,1), opacity .25s ease, visibility .25s ease; }
 .ipv-cta-pill.ipv-sp-raised{ bottom:76px; font-size:calc(clamp(10.5px, 10.01px + 0.3vw, 13px) * var(--ccm-s)); }
@@ -721,8 +898,6 @@ a.pf-row:hover .pf-row-t{text-decoration:underline;}
 @media (max-width:768px){
     @supports (zoom:1){
         .page-shell .sp-adcard{ zoom:.9091; }
-        .sp-htwrap{ display:contents; }
-        .sp-htwrap > *{ zoom:.9091; }   /* hashtag bar: same size as home */
     }
 }
 </style>
@@ -787,7 +962,156 @@ window.dzAdTag=function(p,isNew){
 
     </div>
 
-    <div class="sp-htwrap"><?php dz_hashtag_bar($tag, $filter, $ht); /* shared hashtag bar (hashtags.php) */ ?></div>
+
+    <?php if (($tag ?? 'all') === 'all' || ($tag ?? '') === ''): /* news + sports strip: default Search page only, never inside a hashtag view */ ?>
+    <section class="dzns" id="dzNs" hidden aria-label="News and sports">
+        <div class="dzns-tabs" role="tablist">
+            <button type="button" class="dzns-tab on" data-f="all">Top</button>
+            <button type="button" class="dzns-tab" data-f="news">News</button>
+            <button type="button" class="dzns-tab" data-f="sports">Sports</button>
+            <button type="button" class="dzns-tab" data-f="ent">Entertainment</button>
+        </div>
+        <div class="dzns-rw"><button type="button" class="dzns-arr l" id="dzNsL" aria-label="Scroll left" hidden><i class="ri-arrow-left-s-line"></i></button><div class="dzns-row" id="dzNsRow"></div><button type="button" class="dzns-arr r" id="dzNsR" aria-label="Scroll right" hidden><i class="ri-arrow-right-s-line"></i></button></div>
+    </section>
+    <script>window.DZNS=<?= json_encode($DZNS, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;</script>
+    <style>
+    .dzns{ margin:0 0 10px; padding-bottom:10px; }
+    .dzns[hidden]{ display:none; }
+    .dzns-tabs{ display:flex; gap:8px; padding:4px var(--pad-x) 10px; }
+    .dzns-tab{ flex:1 0 auto; display:flex; align-items:center; justify-content:center; padding:4.5px 10px; border-radius:5px; font-size:11.84px; font-weight:500; letter-spacing:.2px; line-height:1.3; white-space:nowrap;
+        color:var(--ui-sub2,rgba(255,255,255,.8)); background:rgba(var(--fg),.07); }   /* same look as the hashtag pills */
+    .dzns-tab[data-f="all"]{ flex-grow:3; } .dzns-tab[data-f="news"]{ flex-grow:4; } .dzns-tab[data-f="sports"]{ flex-grow:6; } .dzns-tab[data-f="ent"]{ flex-grow:13; }   /* wider word = wider button */
+    .dzns-tab.on{ background:var(--red,#FF2D2D); color:#000; font-weight:600; }   /* same red as the Track button */
+    .dzns-dot{ width:7px; height:7px; border-radius:50%; background:#ff3b4e; animation:dznsPulse 1.4s ease-in-out infinite; }
+    @keyframes dznsPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,59,78,.55); } 50%{ box-shadow:0 0 0 5px rgba(255,59,78,0); } }
+    .dzns-rw{ position:relative; }
+    .dzns-arr{ display:none; position:absolute; top:50%; transform:translateY(-50%); z-index:3; width:32px; height:32px; border-radius:8px; padding:0; align-items:center; justify-content:center; flex-shrink:0;
+        border:1px solid rgba(var(--fg,255,255,255),.12); background:rgba(var(--fg,255,255,255),.14); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+        color:var(--ui-text,#fff); transition:.2s; }   /* same button as the hashtag arrows on the home page */
+    .dzns-arr i{ display:block; font-size:22px; line-height:1; }
+    .dzns-arr.l{ left:6px; } .dzns-arr.r{ right:6px; }
+    .dzns-arr:hover{ background:rgba(255,45,45,.7); border-color:transparent; color:#fff; }
+    @media (hover:hover) and (pointer:fine){ .dzns-arr:not([hidden]){ display:flex; } }   /* mouse users only; touch screens just swipe */
+    .dzns-row::-webkit-scrollbar{ display:none; }
+    .dzns-row{ display:flex; gap:8px; padding:2px var(--pad-x) 2px; scroll-padding-inline:var(--pad-x); overflow-x:auto; scroll-snap-type:x proximity; scrollbar-width:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
+    .dzns-card{ position:relative; flex:none; scroll-snap-align:start; width:232px; border-radius:8px; overflow:hidden; display:flex; flex-direction:column;
+        background:rgba(var(--fg),.07); color:inherit; text-decoration:none; cursor:pointer; text-align:left; }
+    .dzns-card:active{ transform:scale(.985); }
+    .dzns-img{ height:116px; background:rgba(var(--fg),.08); position:relative; overflow:hidden; }
+    .dzns-img img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .dzns-img.ph{ background:linear-gradient(135deg,#8b7cff,#ff5fa2); }
+    .dzns-img.tx{ background:linear-gradient(135deg,#2b2350,#8b7cff); display:flex; align-items:center; padding:12px; font-size:14px; font-weight:700; color:#fff; line-height:1.25; }
+    .dzns-tag{ position:absolute; left:8px; top:8px; font-size:10.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:3px 7px; border-radius:4px; background:rgba(0,0,0,.62); color:#fff; }
+    .dzns-tag.dz{ background:var(--purple); }
+    .dzns-body{ padding:10px 12px 12px; display:flex; flex-direction:column; gap:8px; flex:1; }
+    .dzns-t{ font-size:14.5px; line-height:1.28; font-weight:700; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .dzns-meta{ font-size:12px; color:rgba(var(--fg),.55); display:flex; align-items:center; gap:6px; margin-top:auto; min-width:0; }
+    .dzns-img video{ width:100%; height:100%; object-fit:cover; display:block; }
+    .dzns-av{ width:22px; height:22px; border-radius:50%; object-fit:cover; flex:none; border:2px solid red; box-sizing:border-box; }   /* red ring like post avatars */
+    .dzns-meta span{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dzns-talk{ margin-left:auto; font-size:12px; font-weight:800; color:var(--purple); flex:none; }
+    /* sports score card */
+    .dzns-card.sp{ width:208px; padding:12px; gap:10px; background:rgba(var(--fg),.07); }
+    .dzns-lg{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:800; letter-spacing:.03em; color:rgba(var(--fg),.6); text-transform:uppercase; }
+    .dzns-st{ margin-left:auto; text-transform:none; letter-spacing:0; font-weight:700; }
+    .dzns-st.in{ color:#ff3b4e; display:inline-flex; align-items:center; gap:5px; }
+    .dzns-tm{ display:flex; align-items:center; gap:9px; font-size:15px; font-weight:700; }
+    .dzns-tm img{ width:26px; height:26px; object-fit:contain; flex:none; }
+    .dzns-tm .lg0{ width:26px; height:26px; border-radius:50%; background:rgba(var(--fg),.12); flex:none; }
+    .dzns-tm b{ margin-left:auto; font-size:18px; font-variant-numeric:tabular-nums; }
+    .dzns-tm.lose{ opacity:.55; }
+    .dzns-card.sp .dzns-talk{ margin:auto 0 0; align-self:flex-start; }
+    </style>
+    <script>
+    (function(){
+        var box=document.getElementById('dzNs'), row=document.getElementById('dzNsRow'); if(!box||!row) return;
+        var data=null, posts=[], filter='all';
+        function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+        function safe(u){ return /^https?:\/\//i.test(u||'')?u:''; }
+        function ago(ts){ if(!ts) return ''; var m=Math.max(1,Math.round((Date.now()/1000-ts)/60)); if(m<60) return m+'m'; var h=Math.round(m/60); return h<24?h+'h':Math.round(h/24)+'d'; }
+        function talk(q){ return 'search.php?focus=1&mq='+encodeURIComponent(q); }   /* the Dezzme twist: see what Dezzmers are saying */
+        function newsCard(n){
+            var img=safe(n.i);
+            return '<a class="dzns-card" href="'+esc(safe(n.u))+'" target="_blank" rel="noopener">'+
+                '<div class="dzns-img'+(img?'':' ph')+'">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add(\'ph\');this.remove()">':'')+'<span class="dzns-tag">'+esc(LABEL[n.k]||'News')+'</span></div>'+
+                '<div class="dzns-body"><div class="dzns-t">'+esc(n.t)+'</div><div class="dzns-meta"><span>'+esc(n.s)+'</span><span>·</span><span>'+ago(n.ts)+'</span>'+
+                '<span class="dzns-talk" onclick="event.preventDefault();event.stopPropagation();location.href=\''+talk(n.t.split(/\s+/).slice(0,3).join(' '))+'\'">Talk about it</span></div></div></a>';
+        }
+        /* a Dezzme post about news / sports: opens in Zeems like every other post on this page */
+        function postCard(q){
+            var img=q.i||'', vid=q.v||'';
+            var media=img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'tx\');this.parentNode.textContent=this.getAttribute(\'data-c\')" data-c="'+esc(q.c)+'">'
+                     :(vid?'<video src="'+esc(vid)+'#t=0.1" muted playsinline preload="metadata"></video>':'');
+            var hasMedia=!!media;
+            return '<div class="dzns-card" role="button" tabindex="0" onclick="dznsOpen('+(q.id|0)+')">'+
+                '<div class="dzns-img'+(hasMedia?'':' tx')+'">'+(hasMedia?media:esc(q.c))+'<span class="dzns-tag dz">'+(q.k==='sports'?'Sports':(q.k==='ent'?'Entertainment':'News'))+' · Dezzme</span></div>'+
+                '<div class="dzns-body">'+(hasMedia&&q.c?'<div class="dzns-t">'+esc(q.c)+'</div>':'')+'<div class="dzns-meta"><img class="dzns-av" src="'+esc(q.p)+'" alt="" onerror="this.src=\'mee.jpg\'"><span>'+esc(q.n)+'</span></div></div></div>';
+        }
+        window.dznsOpen=function(id){ if(typeof hpOpenPost==='function') hpOpenPost(id); };
+        function teamRow(t,lose){
+            return '<div class="dzns-tm'+(lose?' lose':'')+'">'+(safe(t.l)?'<img src="'+esc(t.l)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<span class="lg0"></span>')+'<span>'+esc(t.n)+'</span><b>'+esc(t.s)+'</b></div>';
+        }
+        function gameCard(g){
+            var hs=parseFloat(g.h.s), as=parseFloat(g.a.s), done=g.st==='post';
+            var when=g.st==='pre'?new Date(g.ts*1000).toLocaleString([], {weekday:'short',hour:'numeric',minute:'2-digit'}):g.tx;
+            var tag=g.st==='in'?'<span class="dzns-st in"><i class="dzns-dot"></i>'+esc(g.tx||'Live')+'</span>':'<span class="dzns-st">'+esc(when)+'</span>';
+            return '<a class="dzns-card sp" href="'+esc(safe(g.u)||'#')+'" target="_blank" rel="noopener">'+
+                '<div class="dzns-lg">'+esc(g.lg)+tag+'</div>'+
+                teamRow(g.a, done&&as<hs)+teamRow(g.h, done&&hs<as)+
+                '<span class="dzns-talk" onclick="event.preventDefault();event.stopPropagation();location.href=\''+talk(g.h.n+' '+g.a.n)+'\'">Talk about it</span></a>';
+        }
+        var LABEL={news:'News',tech:'Tech',sport:'Sport',ent:'Entertainment'};
+        function draw(keep){
+            if(!data) return; var h='';
+            var N=data.news||[], S=data.sports||[];
+            var NN=N.filter(function(n){return n.k==='news'||n.k==='tech';}), NS=N.filter(function(n){return n.k==='sport';}), NE=N.filter(function(n){return n.k==='ent';});
+            var PN=posts.filter(function(q){return q.k==='news';}), PS=posts.filter(function(q){return q.k==='sports';}), PE=posts.filter(function(q){return q.k==='ent';});
+            function mix(items,pp,games){ items=items.slice(0,12); pp=pp.slice(0,8); games=games.slice(0,10); var o='',i=0,j=0,g=0; while(i<items.length||j<pp.length||g<games.length){ if(g<games.length) o+=gameCard(games[g++]); if(j<pp.length) o+=postCard(pp[j++]); if(g<games.length) o+=gameCard(games[g++]); if(i<items.length) o+=newsCard(items[i++]); if(i<items.length&&!games.length) o+=newsCard(items[i++]); } return o; }
+            if(filter==='news') h=mix(NN,PN,[]);
+            else if(filter==='sports') h=mix(NS,PS,S);
+            else if(filter==='ent') h=mix(NE,PE,[]);
+            else h=mix(N,posts,S);
+            if(!h) h='<div style="padding:16px 4px;color:rgba(var(--fg),.55);font-size:14px">Nothing here yet.</div>';
+            var c=0; h=h.replace(/ loading="lazy"/g,function(){ return (++c>6)?' loading="lazy"':''; });   /* first cards load at once */
+            var sl=keep?row.scrollLeft:0; row.innerHTML=h; row.scrollLeft=sl; arrows(); setTimeout(arrows,300);
+        }
+        box.querySelectorAll('.dzns-tab').forEach(function(b){ b.addEventListener('click',function(){
+            box.querySelectorAll('.dzns-tab').forEach(function(x){x.classList.toggle('on',x===b);}); filter=b.dataset.f; draw(); }); });
+        function shuf(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+        function mixUp(d){   /* different stories every visit: live games stay first, the rest is shuffled */
+            var S=d.sports||[], live=S.filter(function(g){return g.st==='in';}), rest=shuf(S.filter(function(g){return g.st!=='in';}));
+            return {news:shuf(d.news||[]), sports:live.concat(rest)};
+        }
+        var aL=document.getElementById('dzNsL'), aR=document.getElementById('dzNsR');
+        function arrows(){ if(!aL||!aR) return; aL.hidden = row.scrollLeft < 8; aR.hidden = row.scrollLeft + row.clientWidth >= row.scrollWidth - 8; }
+        if(aL&&aR){
+            aL.addEventListener('click',function(){ row.scrollBy({left:-Math.round(row.clientWidth*.8),behavior:'smooth'}); });
+            aR.addEventListener('click',function(){ row.scrollBy({left:Math.round(row.clientWidth*.8),behavior:'smooth'}); });
+            row.addEventListener('scroll',arrows,{passive:true}); window.addEventListener('resize',arrows);
+        }
+        function show(d, keep){
+            if(data && keep){ data={news:(data.news&&data.news.length?data.news:shuf(d.news||[])), sports:mixUp({sports:d.sports}).sports}; }   /* refresh: only the scores move, stories stay put */
+            else data=mixUp(d);
+            box.hidden=false; draw(keep);
+        }
+        function load(){
+            fetch('search.php?dz_ns=1',{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){
+                if(!d) return;
+                var any=(d.news&&d.news.length)||(d.sports&&d.sports.length);
+                if(any) show(d, !!data);
+                else if(!data && !posts.length){ box.hidden=false; row.innerHTML='<div style="padding:14px 4px;color:rgba(var(--fg),.55);font-size:13.5px">News and scores could not load right now'+(d.curl===false?' (PHP curl is turned off on this server)':' (this server could not reach the news sources)')+'.</div>'; }
+                if(d.sports&&d.sports.some(function(g){return g.st==='in';})) setTimeout(load,60000);   /* live scores refresh */
+            }).catch(function(){});
+        }
+        /* first paint: everything already came with the page (cached on the server), so it shows instantly like the posts */
+        var D=window.DZNS||null;
+        if(D&&D.perr&&window.console) console.warn('Dezzme news strip - posts query failed:', D.perr);
+        if(D){ posts=D.posts||[]; if((D.news&&D.news.length)||(D.sports&&D.sports.length)||posts.length) show({news:D.news||[],sports:D.sports||[]}, false); }
+        if(!D||D.stale||!data){ setTimeout(load, data?800:0); }          /* cache empty or old: refresh quietly in the background */
+        else if(D.sports&&D.sports.some(function(g){return g.st==='in';})) setTimeout(load,60000);
+    })();
+    </script>
+    <?php endif; ?>
 
     <div class="posts-skel" id="postSkel">
         <?php for($i = 0; $i < 6; $i++): ?>
@@ -1869,7 +2193,8 @@ function pfMore(btn){
 
         var cta='';
         if(p.isAd && p.adCtaUrl){
-            cta='<a href="'+esc(dzSafeUrl(p.adCtaUrl))+'" target="_blank" rel="noopener" class="ipv-cta-pill'+''+'" data-meme-id="'+p.id+'" style="--cta-color:'+esc(p.adCtaColor||'#FF4C4C')+';" onclick="event.stopPropagation()"><span class="ipv-cta-pill-text">'+esc(p.adCtaText||'Learn more')+'</span><i class="ri-arrow-right-s-line ipv-cta-pill-chevron"></i></a>';
+            var _ctaCol=p.adCtaColor||'#FF4C4C';
+        cta='<a href="'+esc(dzSafeUrl(p.adCtaUrl))+'" target="_blank" rel="noopener" class="ipv-cta-bar" data-meme-id="'+p.id+'" style="--cta-color:'+esc(_ctaCol)+';--cta-ink:'+dzCtaInk(_ctaCol)+';" onclick="event.stopPropagation()"><span class="ipv-cta-bar-text">'+esc(p.adCtaText||'Learn more')+'</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>';
         }
 
         var controls='';
@@ -1932,7 +2257,7 @@ function pfMore(btn){
                 '<button type="button" class="ipv-kebab index-kebab-btn" data-id="'+p.id+'" onclick="event.stopPropagation();openIndexSheet('+p.id+')"><i class="ri-menu-line"></i></button>'+
             '</div>'+
             headerCap+
-            '<div class="'+wrapClass+'" data-count="'+mc+'" data-active-idx="0">'+topLeft+topRight+strip+cta+mediaInner+arrows+controls+partner+dotsHtml+'</div>'+
+            '<div class="'+wrapClass+'" data-count="'+mc+'" data-active-idx="0">'+topLeft+topRight+strip+mediaInner+arrows+controls+partner+dotsHtml+'</div>'+cta+
             '<div class="ipv-actions"><div class="ipv-actions-left">'+
                 '<div class="ipv-action-group"><button type="button" class="ipv-action-btn like-btn'+(p.liked?' active':'')+'" data-id="'+p.id+'" onclick="event.stopPropagation();spAdAction('+p.id+',\'like\',this)"><i class="sp-rp sp-ic sp-fillable"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></i></button>'+cntHtml('like-count',p.hideLikes,p.likeCount)+'</div>'+
                 (p.isAd?'':'<div class="ipv-action-group"><button type="button" class="ipv-action-btn repost-btn'+(p.reposted?' active':'')+'" data-id="'+p.id+'" onclick="event.stopPropagation();spAdAction('+p.id+',\'repost\',this)"><i class="sp-rp"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.5V9.276A4.276 4.276 0 0 1 8.276 5H16M12.5 1.5L16 5L12.5 8.5"/><path d="M4 13.5V9.276A4.276 4.276 0 0 1 8.276 5H16M12.5 1.5L16 5L12.5 8.5" transform="rotate(180 12 12)"/></svg></i></button>'+cntHtml('repost-count',p.hideReposts,p.repostCount)+'</div>')+
@@ -2025,13 +2350,7 @@ function pfMore(btn){
             setInterval(function(){ panes[i].classList.remove('active'); i=(i+1)%panes.length; panes[i].classList.add('active'); },5000);
         });
     }
-    function initCtaCycles(posts){
-        posts.forEach(function(post){
-            var pill=post.querySelector('.ipv-cta-pill'); if(!pill) return;
-            var on=false;
-            setInterval(function(){ on=!on; pill.classList.toggle('ipv-cta-pill-expanded',on); },3000);
-        });
-    }
+    function initCtaCycles(posts){ /* the ad button is now a steady bar under the picture: nothing to cycle */ }
 
     var MULTI_RATIO=3.5/4, MULTI_TOL=.15, LONG_RATIO=1.2;
     window.hpMeasure=function(el){

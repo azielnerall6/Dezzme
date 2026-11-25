@@ -219,8 +219,30 @@ if (!empty($ads) && function_exists('dz_aud_load_posts')) {
     try { $aud_by_meme = dz_aud_load_posts($conn, array_column($ads, 'meme_id')); } catch (Throwable $e) { $aud_by_meme = []; }
 }
 
+/* ── Info card — the picture, line and tappable questions the advertiser put above the button
+   (ad_faq, saved by upload.php). One batched load for every ad on this page. Read-only: it shows
+   the reviewer exactly what viewers will see and be able to tap before the ad goes live. ── */
+$faq_by_meme = [];
+if (!empty($ads)) {
+    try {
+        $conn->query("CREATE TABLE IF NOT EXISTS ad_faq (meme_id INT NOT NULL PRIMARY KEY, info_pic VARCHAR(255) NULL, info_text VARCHAR(255) NULL, questions TEXT NULL, created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP) DEFAULT CHARSET=utf8mb4");
+        $fids = array_values(array_unique(array_map('intval', array_column($ads, 'meme_id'))));
+        $fph = implode(',', array_fill(0, count($fids), '?'));
+        $fq = $conn->prepare("SELECT meme_id, info_pic, info_text, questions FROM ad_faq WHERE meme_id IN ($fph)");
+        $fq->bind_param(str_repeat('i', count($fids)), ...$fids);
+        $fq->execute();
+        $fr = $fq->get_result();
+        while ($row = $fr->fetch_assoc()) {
+            $qs = json_decode((string)$row['questions'], true);
+            $row['qs'] = is_array($qs) ? $qs : [];
+            $faq_by_meme[(int)$row['meme_id']] = $row;
+        }
+    } catch (Throwable $e) { $faq_by_meme = []; }
+}
+
 /* Attach each ad's extra gallery items + audio info (null/empty if none) */
 foreach ($ads as &$ad) {
+    $ad['faq'] = $faq_by_meme[(int)$ad['meme_id']] ?? null;
     $ad['aud'] = $aud_by_meme[(int)$ad['meme_id']] ?? null;
     $ad['aud_reach'] = null;
     if ($ad['aud'] && function_exists('dz_aud_estimate')) {
@@ -425,6 +447,16 @@ body {
 .detail-pill i { font-size: 0.85rem; color: var(--red); }
 .detail-pill.cta-preview { color: #fff; font-weight: 600; }
 
+.faq-box { border: 1px solid var(--border); background: var(--surface-2); border-radius: 12px; padding: 10px 12px; }
+.faq-head { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #fff; }
+.faq-head i { color: var(--red); font-size: 0.95rem; }
+.faq-row { display: flex; gap: 10px; align-items: center; margin-top: 9px; }
+.faq-pic { width: 46px; height: 46px; border-radius: 6px; object-fit: cover; background: #000; flex-shrink: 0; }
+.faq-text { font-size: 0.8rem; line-height: 1.4; color: #fff; min-width: 0; overflow-wrap: anywhere; }
+.faq-qs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.faq-q { background: rgba(255,255,255,0.12); border: 1px solid var(--border); border-radius: 8px; padding: 5px 11px; font-size: 0.74rem; font-weight: 600; color: #fff; }
+.faq-note { margin-top: 6px; font-size: 0.72rem; color: var(--muted); line-height: 1.45; }
+
 /* ── Audience panel ── */
 .aud-box { border: 1px solid rgba(255,76,76,0.35); background: rgba(255,76,76,0.07); border-radius: 12px; padding: 10px 12px; }
 .aud-box.aud-none { border-color: rgba(245,196,81,0.4); background: rgba(245,196,81,0.08); }
@@ -583,6 +615,25 @@ body {
                     <?php if (!empty($ad['caption'])): ?>
                     <div class="ad-caption"><?= htmlspecialchars($ad['caption']) ?></div>
                     <?php endif; ?>
+
+                    <?php $faq = $ad['faq']; ?>
+                    <div class="faq-box">
+                        <div class="faq-head"><i class="ri-question-answer-line"></i> Info card</div>
+                        <?php if ($faq && ($faq['info_pic'] !== '' || $faq['info_text'] !== '' || $faq['qs'])): ?>
+                            <?php if (!empty($faq['info_pic']) || !empty($faq['info_text'])): ?>
+                            <div class="faq-row">
+                                <?php if (!empty($faq['info_pic'])): ?><img class="faq-pic" src="<?= htmlspecialchars($faq['info_pic']) ?>" alt="info card picture"><?php endif; ?>
+                                <?php if (!empty($faq['info_text'])): ?><div class="faq-text"><?= htmlspecialchars($faq['info_text']) ?></div><?php endif; ?>
+                            </div>
+                            <?php endif; ?>
+                            <?php if ($faq['qs']): ?>
+                            <div class="faq-qs"><?php foreach ($faq['qs'] as $fqq): ?><span class="faq-q"><?= htmlspecialchars((string)$fqq) ?></span><?php endforeach; ?></div>
+                            <div class="faq-note">Viewers can tap these. Each one is sent to the advertiser's messages as a question.</div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <div class="faq-note">No info card. The ad shows just its button.</div>
+                        <?php endif; ?>
+                    </div>
 
                     <?php $aud = $ad['aud']; ?>
                     <?php if ($aud): ?>

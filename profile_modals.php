@@ -601,6 +601,11 @@
 /* ============================================================
    POST-AS-AD CTA PILL
    ============================================================ */
+/* ad button: a full-width bar under the picture (same as home) */
+.ipv-post .ipv-cta-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box;width:100%;min-height:44px;padding:0 16px;background:var(--cta-color,#FF4C4C);color:var(--cta-ink,#fff);text-decoration:none;font-weight:600;font-size:14px;line-height:1.2;-webkit-tap-highlight-color:transparent;transition:filter .15s ease}
+.ipv-post .ipv-cta-bar:active{filter:brightness(.92)}
+.ipv-post .ipv-cta-bar-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ipv-post .ipv-cta-bar svg{flex:none}
 .ipv-cta-pill{ position:absolute; left:calc(clamp(8px, 7.02px + 0.59vw, 12px) * var(--ccm-s)); bottom:calc(clamp(22px, 18.05px + 1.73vw, 30px) * var(--ccm-s)); z-index:6; display:flex; align-items:center; justify-content:flex-start; padding:calc(clamp(6px, 5.01px + 0.43vw, 9px) * var(--ccm-s)) calc(clamp(9px, 8.02px + 0.59vw, 14px) * var(--ccm-s)); border-radius:8px; background:rgba(30,30,34,.55); border:1px solid rgba(var(--fg,255,255,255),.28); color:#fff; font-weight:700; font-size:calc(clamp(9px, 8.51px + 0.3vw, 11.5px) * var(--ccm-s)); text-decoration:none; box-shadow:0 4px 14px rgba(0,0,0,.3); white-space:nowrap; overflow:hidden; max-width:calc(100% - 24px); transition:padding .4s cubic-bezier(.22,1,.36,1), background .4s ease, border-color .4s ease,
                box-shadow .4s ease, min-width .4s cubic-bezier(.22,1,.36,1), opacity .25s ease, visibility .25s ease; }
 .ipv-cta-pill.ipv-sp-raised{ bottom:76px; font-size:calc(clamp(10.5px, 10.01px + 0.3vw, 13px) * var(--ccm-s)); }
@@ -882,6 +887,16 @@ function ipvEsc(str){
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 /* only http(s) / relative links are allowed for user-supplied URLs (blocks javascript: and data: links) */
+/* black words on a light button colour, white words on a dark one */
+function _ipvCtaInk(c){
+    c=String(c||'').trim().toLowerCase();var r,g,b,m;
+    if((m=/^#([0-9a-f]{3})$/.exec(c))){r=parseInt(m[1][0]+m[1][0],16);g=parseInt(m[1][1]+m[1][1],16);b=parseInt(m[1][2]+m[1][2],16);}
+    else if((m=/^#([0-9a-f]{6})/.exec(c))){r=parseInt(m[1].slice(0,2),16);g=parseInt(m[1].slice(2,4),16);b=parseInt(m[1].slice(4,6),16);}
+    else if((m=/^rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/.exec(c))){r=+m[1];g=+m[2];b=+m[3];}
+    else if(c==='white')return '#000';
+    else return '#fff';
+    return (0.2126*r+0.7152*g+0.0722*b)>160?'#000':'#fff';
+}
 function ipvSafeUrl(u){
     u = String(u == null ? '' : u).trim();
     if(/^(https?:)?\/\//i.test(u) || /^[\w\-./?#=&%+~,:@]*$/.test(u) && !/^[a-z][a-z0-9+.\-]*:/i.test(u)) return u;
@@ -1089,15 +1104,13 @@ function ipvRenderPost(p, feedName){
 
     var socialStripHtml = ipvStripHtml(p);
 
-    var ctaPillHtml = '';
+    var ctaPillHtml = '';   /* the ad button is now a full-width bar UNDER the picture (ctaBarHtml) */
+    var ctaBarHtml = '';
     if(p.isAd && p.adCtaUrl){
-        var ctaClass = 'ipv-cta-pill' + '';
-        var ctaColor = p.adCtaColor || '#FF4C4C';
-        var ctaLabel = p.adCtaText || 'Learn more';
-        ctaPillHtml = '<a href="'+ipvEsc(ipvSafeUrl(p.adCtaUrl))+'" target="_blank" rel="noopener" id="ipv-cta-pill-'+p.id+'" class="'+ctaClass+'" '+
-            'data-meme-id="'+p.id+'" style="--cta-color:'+ipvEsc(ctaColor)+';" onclick="event.stopPropagation()">'+
-            '<span class="ipv-cta-pill-text">'+_ipvEscapeHtml(ctaLabel)+'</span>'+
-            '<i class="ri-arrow-right-s-line ipv-cta-pill-chevron"></i>'+
+        var _ctaCol = p.adCtaColor || '#FF4C4C';
+        ctaBarHtml = '<a href="'+ipvEsc(ipvSafeUrl(p.adCtaUrl))+'" target="_blank" rel="noopener" class="ipv-cta-bar" data-meme-id="'+p.id+'" style="--cta-color:'+ipvEsc(_ctaCol)+';--cta-ink:'+_ipvCtaInk(_ctaCol)+';" onclick="event.stopPropagation()">'+
+            '<span class="ipv-cta-bar-text">'+_ipvEscapeHtml(p.adCtaText || 'Learn more')+'</span>'+
+            '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>'+
         '</a>';
     }
 
@@ -1253,7 +1266,7 @@ function ipvRenderPost(p, feedName){
 
             '<div class="'+wrapClass+'" data-count="'+mediaCount+'" data-active-idx="0">'+
                 wrapInner+
-            '</div>'+
+            '</div>'+ctaBarHtml+
 
             '<div class="ipv-actions">'+
                 '<div class="ipv-actions-left">'+
@@ -1438,18 +1451,9 @@ function _ipvRenderTopbarAction(arr, focusMemeId){
 }
 
 function _ipvInitAllCtaPillCycles(root){
+    /* the ad button is now a steady bar under the picture: nothing to cycle */
     Object.keys(_ipvCtaPillTimers).forEach(function(k){ clearInterval(_ipvCtaPillTimers[k]); });
     _ipvCtaPillTimers = {};
-
-    root.querySelectorAll('.ipv-cta-pill[data-meme-id]').forEach(function(pill){
-        var memeId = pill.dataset.memeId;
-        pill.classList.remove('ipv-cta-pill-expanded');
-        var expanded = false;
-        _ipvCtaPillTimers[memeId] = setInterval(function(){
-            expanded = !expanded;
-            pill.classList.toggle('ipv-cta-pill-expanded', expanded);
-        }, 3000);
-    });
 }
 
 /* ============================================================

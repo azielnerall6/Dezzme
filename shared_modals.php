@@ -807,7 +807,7 @@ function svshToast(msg){
     function mgRender(){
         var rows = MG.list.map(function(u){
             return '<div class="dzc-row"><img class="dzc-av sm" src="' + esc(u.pic) + '" onerror="this.src=\'mee.jpg\'">' +
-                   '<div class="dzc-meta"><div class="dzc-name"><span>' + esc(u.username) + '</span><b class="dzc-chip' + (u.status === 'accepted' ? ' ok' : '') + '">' + (u.status === 'accepted' ? 'Collaborator' : 'Invited') + '</b></div>' + (u.nickname ? '<div class="dzc-sub">@' + esc(u.nickname) + '</div>' : '') + '</div>' +
+                   '<div class="dzc-meta"><div class="dzc-name"><span>' + esc(u.username) + '</span>' + (u.isVerified ? VB : '') + '<b class="dzc-chip' + (u.status === 'accepted' ? ' ok' : '') + '">' + (u.status === 'accepted' ? 'Collaborator' : 'Invited') + '</b></div>' + (u.nickname ? '<div class="dzc-sub">@' + esc(u.nickname) + '</div>' : '') + '</div>' +
                    '<button type="button" class="dzc-x" aria-label="Remove" onclick="dzCollabRemove(' + u.id + ')"><i class="ri-close-line"></i></button></div>';
         }).join('');
         var full = MG.list.length >= MG.max;
@@ -1045,7 +1045,8 @@ function svshToast(msg){
     width:41.8px;height:41.8px;border-radius:50%;object-fit:cover;
     border:2px solid #f24455;flex-shrink:0;
 }
-.idx-detail-poster-name{font-size:14.3px;font-weight:700;color:#fff;}
+.idx-detail-poster-name{font-size:14.3px;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px;}
+.idx-detail-poster-name svg{width:14px;height:14px;flex:none;color:var(--red,#FF2D2D);}
 .idx-detail-poster-sub{font-size:11.55px;color:rgba(255,255,255,0.4);margin-top:1px;}
 
 .idx-detail-unique{
@@ -1901,6 +1902,20 @@ function _idxWhyListHTML(d){
 function _idxAlgoBtn(){
     return '<a class="idx-detail-link-btn" href="algorithm_settings.php"><i class="ri-equalizer-line"></i> Adjust your algorithm</a>';
 }
+/* verified badge: same flower as everywhere else; works on pages that only have the post's own header (checks it when the kebab data has no flag) */
+function _idxVB(){
+    if(window.DZ_VB) return window.DZ_VB;
+    if(document.getElementById('ccm-vflower')) return '<svg class="dz-vb" viewBox="0 0 256 256" aria-label="Verified" fill="currentColor"><use href="#ccm-vflower"/></svg>';
+    return '';
+}
+function _idxPosterVerified(d, id){
+    if(d && (d.posterVerified !== undefined || d.isVerified !== undefined)) return !!(d.posterVerified || d.isVerified);
+    try{
+        var els = document.querySelectorAll('[data-id="' + id + '"]');
+        for(var i = 0; i < els.length; i++){ if(els[i].querySelector('.ipv-username .dz-vb, .ipv-username .ccm-vb, .ipv-username [aria-label="Verified"]')) return true; }
+    }catch(e){}
+    return false;
+}
 function _idxPost(id){
     return (window.kebabData && window.kebabData[id]) || null;
 }
@@ -1953,7 +1968,7 @@ function idxShowAdReason(id){
         '<div class="idx-detail-poster-row">'+
             '<img src="'+pic+'" onerror="this.src=\'mee.jpg\'" class="idx-detail-poster-pic">'+
             '<div>'+
-                '<div class="idx-detail-poster-name">'+uname+'</div>'+
+                '<div class="idx-detail-poster-name"><span>'+uname+'</span>'+(_idxPosterVerified(d, id) ? _idxVB() : '')+'</div>'+
                 '<div class="idx-detail-poster-sub">Sponsored content</div>'+
             '</div>'+
         '</div>';
@@ -2860,31 +2875,18 @@ document.addEventListener('keydown', function(e){
         setTimeout(function () { _openScreen('dzReportOverlay'); }, 80);
     };
 
-    /* what kind of content is being reported — drives the wording of the reason screen (and the Post ID box, which only makes sense for posts) */
-    function _rptKind(ct) {
-        var m = {
-            meme:            { label: 'post',            idLabel: 'Post ID' },
-            highlight:       { label: 'highlight',       idLabel: '' },
-            group_highlight: { label: 'pod highlight',   idLabel: '' },
-            longform:        { label: 'longform video',  idLabel: '' },
-            comment:         { label: 'comment',         idLabel: '' }
-        };
-        return m[ct] || { label: 'content', idLabel: 'Post ID' };
-    }
-
     function _buildReasonScreen(cat) {
         var reasons = cat === 'user' ? _userReasons : _contentReasons;
         var titles = {
             user:    'Why are you reporting this user?',
             content: 'Why are you reporting this content?'
         };
-        if (cat === 'content') titles.content = 'Why are you reporting this ' + _rptKind(_rState.contentType).label + '?';
         document.getElementById('dzRptTitle').textContent = titles[cat] || 'Select a reason';
 
         var uidWrap = document.getElementById('dzRptUserIdWrap');
         if (uidWrap) uidWrap.style.display = cat === 'user' ? 'block' : 'none';
         var pidWrap = document.getElementById('dzRptPostIdWrap');
-        if (pidWrap) pidWrap.style.display = (cat === 'content' && _rptKind(_rState.contentType).idLabel) ? 'block' : 'none';   /* highlights / longform videos are identified automatically */
+        if (pidWrap) pidWrap.style.display = cat === 'content' ? 'block' : 'none';
 
         _rState.reason = null;
         document.getElementById('dzRptOtherWrap').style.display = 'none';
@@ -2971,13 +2973,13 @@ document.addEventListener('keydown', function(e){
             var uid = (document.getElementById('dzRptUserIdInput').value || '').trim();
             if (uid) fd.append('user_id_hint', uid);
         } else {
-            endpoint = ['highlight','group_highlight','longform'].indexOf(_rState.contentType) >= 0 ? 'report_media.php' : 'report_content.php';   /* these three live in their own tables */
+            endpoint = 'report_content.php';
             fd.append('reported_id', _rState.targetId);
             fd.append('content_type', _rState.contentType || 'meme');
         }
         fd.append('reason', _rState.reason);
         var desc = (document.getElementById('dzRptOtherInput').value || '').trim();
-        if (cat !== 'user' && _rptKind(_rState.contentType).idLabel){
+        if (cat !== 'user'){
             var postHint = ((document.getElementById('dzRptPostIdInput') || {}).value || '').trim().toUpperCase();
             if (postHint){
                 fd.append('post_id_hint', postHint);

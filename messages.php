@@ -298,11 +298,31 @@ function ms_short_time(?string $ts): string {
     if ($t > strtotime('-6 days')) return date('D', $t);
     return date('M j', $t);
 }
+/* the small ad card shown above a question that came from an ad's info card */
+function ms_adq_info(int $id): array {
+    static $cache = [];
+    if (isset($cache[$id])) return $cache[$id];
+    global $conn; $o = ['img' => '', 'cap' => ''];
+    try {
+        $r = $conn->query("SELECT m.caption, m.type, m.file_name, m.cover_image FROM memes m WHERE m.id = " . (int)$id . " LIMIT 1");
+        $row = $r ? $r->fetch_assoc() : null;
+        if ($row) {
+            $o['cap'] = mb_substr(trim(preg_replace('/\s+/', ' ', (string)$row['caption'])), 0, 60);
+            if (!empty($row['cover_image'])) $o['img'] = 'uploads/' . $row['cover_image'];
+            elseif (($row['type'] ?? '') === 'image' && !empty($row['file_name'])) $o['img'] = 'uploads/' . $row['file_name'];
+        }
+        $p = $conn->query("SELECT info_pic FROM ad_faq WHERE meme_id = " . (int)$id . " LIMIT 1");
+        $pr = $p ? $p->fetch_assoc() : null;
+        if ($pr && !empty($pr['info_pic'])) $o['img'] = $pr['info_pic'];
+    } catch (Throwable $e) {}
+    return $cache[$id] = $o;
+}
 function ms_preview(array $c, int $me): array {
     $m = trim((string)($c['last_msg'] ?? ''));
     $italic = false;
     if ($m === '[deleted]')                          { $t = 'Message deleted'; $italic = true; }
     elseif (preg_match('/^\[meme:\d+\]$/', $m))      { $t = 'Shared a post'; }
+    elseif (preg_match('/^\[adq:\d+\]\s*(.*)$/s', $m, $__aq)) { $t = mb_substr(preg_replace('/\s+/', ' ', $__aq[1]), 0, 70); }   // a question tapped on an ad
     elseif ($m === '' && !empty($c['last_file']))    { $t = 'Sent an attachment'; }
     else                                             { $t = mb_substr(preg_replace('/\s+/', ' ', $m), 0, 70); }
     if (!$italic && (int)($c['last_sender'] ?? 0) === $me) $t = 'You: ' . $t;
@@ -1280,6 +1300,8 @@ function ms_render_row(array $msg, int $me, ?int $prev_sender, ?array $shared_me
     }
     $is_sent     = (int)$msg['sender_id'] === $me;
     $text        = (string)($msg['message'] ?? '');
+    $adq_id = 0;   /* a question tapped on an ad in Zeems arrives as "[adq:AD_ID] question": the question is the text, the ad shows as a small card above it */
+    if (preg_match('/^\[adq:(\d+)\]\s*(.*)$/s', $text, $__aq)) { $adq_id = (int)$__aq[1]; $text = $__aq[2]; }
     $is_deleted  = trim($text) === '[deleted]';
     $is_meme_msg = (bool)preg_match('/\[meme:\d+\]/', $text);
     $msg_time    = strtotime($msg['created_at']);
@@ -1332,6 +1354,7 @@ function ms_render_row(array $msg, int $me, ?int $prev_sender, ?array $shared_me
           $rt = trim((string)$msg['reply_text']);
           if ($rt === '[deleted]') $rt = 'Message deleted';
           elseif (preg_match('/^\[meme:\d+\]$/', $rt)) $rt = 'Shared a post';
+          elseif (preg_match('/^\[adq:\d+\]\s*(.*)$/s', $rt, $__ra)) $rt = $__ra[1];
           $rn = ((int)$msg['reply_sender'] === $me) ? 'You' : ($msg['reply_name'] ?? ''); ?>
         <div class="reply-preview" onclick="event.stopPropagation();jumpToMsg(<?= (int)$msg['reply_to'] ?>)">
           <strong><?= ms_h($rn) ?></strong><?= ms_h(mb_substr($rt, 0, 90)) ?>
@@ -1341,6 +1364,12 @@ function ms_render_row(array $msg, int $me, ?int $prev_sender, ?array $shared_me
       <?php if ($media_rows): ?><?= ms_render_media($media_rows, $me) ?><?php endif; ?>
 
       <?php if (!$is_deleted): ?>
+        <?php if ($adq_id): $adq = ms_adq_info($adq_id); ?>
+          <div class="adq-card">
+            <span class="adq-thumb"><?php if ($adq['img'] !== ''): ?><img src="<?= ms_h($adq['img']) ?>" alt="" loading="lazy" onerror="this.style.display='none'"><?php else: ?><i class="ri-megaphone-line"></i><?php endif; ?></span>
+            <span class="adq-txt"><b><?= $is_sent ? 'You asked about this ad' : 'Question about your ad' ?></b><span><?= ms_h($adq['cap'] !== '' ? $adq['cap'] : 'Ad') ?></span></span>
+          </div>
+        <?php endif; ?>
         <?php if ($shared_meme):
             $sm_owner_pic  = !empty($shared_meme['owner_pic']) ? $shared_meme['owner_pic'] : 'mee.jpg';
             $sm_owner_name = ms_h($shared_meme['owner_username'] ?? 'user');
@@ -3080,6 +3109,12 @@ video.bubble-media{background:#000;cursor:default;}
    type tag moved below media (just above caption), username shrunk
    and truncated ═══ */
 .bubble.shared-meme-bubble{background:transparent !important;border:none !important;padding:0 !important;box-shadow:none !important;}
+.adq-card{display:flex;gap:9px;align-items:center;padding:7px 9px;margin-bottom:6px;background:rgba(0,0,0,.18);border-left:3px solid #f24455;min-width:190px;max-width:100%;box-sizing:border-box}
+.adq-thumb{width:34px;height:34px;flex:none;overflow:hidden;background:rgba(128,128,128,.3);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.adq-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.adq-txt{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.adq-txt b{font-size:.66rem;font-weight:700;opacity:.9}
+.adq-txt span{font-size:.7rem;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .shared-meme-card{display:block;width:300px;max-width:80vw;border-radius:14px;overflow:hidden;background:transparent;border:1px solid rgba(var(--fg),.1);text-decoration:none;color:inherit;cursor:pointer;transition:transform .15s ease,border-color .15s ease;-webkit-tap-highlight-color:transparent;}
 @media (hover:hover){.shared-meme-card:hover{transform:scale(1.02);border-color:rgba(255,45,45,.4);}}
 .shared-meme-card{touch-action:manipulation;}

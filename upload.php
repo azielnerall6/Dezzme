@@ -1033,6 +1033,8 @@ if(isset($_POST['upload'])){
         if($ok&&$is_ad){
             $ads=$conn->prepare("INSERT INTO meme_ads (meme_id, cta_text, cta_url, cta_color, duration_days, price, status) VALUES (?,?,?,?,?,?,'pending')");
             $ads->bind_param("isssid",$new_meme_id,$ad_cta_text,$ad_cta_url,$ad_cta_color,$ad_duration_days,$ad_price); $ads->execute();
+            /* the optional info card (picture, line, tappable questions) that opens above the ad's button in Zeems */
+            try{ require_once __DIR__.'/ad_faq.php'; dz_ad_faq_save($conn,(int)$new_meme_id,$_POST,$_FILES); }catch(Throwable $e){}
         }
         /* media AI: check the new post within seconds (runs after the response has been sent, so the upload never waits for it) */
         if($ok&&!empty($new_meme_id)&&function_exists('dz_vision_after_response')&&function_exists('dz_tokens')){
@@ -1449,6 +1451,12 @@ textarea.f-input{height:auto;min-height:110px;padding:9px 11px;line-height:1.6}
 #adMediaStripInner{display:flex;gap:7px;overflow-x:auto;padding:4px 2px;scrollbar-width:none}
 #adMediaStripInner::-webkit-scrollbar{display:none}
 .ad-field{margin-top:14px}
+.ad-opt{font-weight:500;text-transform:none;letter-spacing:0;opacity:.7;margin-left:6px}
+.ad-info{display:flex;gap:10px;align-items:stretch}
+.ad-info-pic{width:76px;min-height:76px;flex:none;border:1.5px dashed rgba(128,128,128,.55);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;font-size:1.4rem;color:var(--sub)}
+.ad-info-pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ad-info .f-input{flex:1;min-height:76px;resize:none}
+.ad-qs .f-input{margin-bottom:8px}
 .ad-field>label{display:block;font-size:.62rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px}
 .ad-colors{display:flex;flex-wrap:wrap;gap:9px}
 .ad-sw{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid rgba(var(--fg),.15);position:relative;transition:.15s}
@@ -1924,6 +1932,20 @@ button.pf-row:hover .pf-row-t,a.pf-row:hover .pf-row-t{text-decoration:underline
           <select class="f-input" id="adCtaText" onchange="syncCtaText()"><option value="">Select CTA…</option><option>Learn More</option><option>Visit Brand</option><option>Shop Now</option><option>Download Now</option><option value="__custom">Custom…</option></select>
           <input type="text" class="f-input" id="adCtaTextCustom" placeholder="Type your own CTA text" maxlength="24" style="display:none;margin-top:8px" oninput="document.getElementById('ad_cta_text_hidden').value=this.value"></div>
         <div class="ad-field"><label>Destination link</label><input type="url" class="f-input" id="adCtaUrl" placeholder="https://yourbrand.com"></div>
+        <div class="ad-field"><label>Info card <span class="ad-opt">optional</span></label>
+          <div class="ad-info">
+            <label class="ad-info-pic" title="Add a picture"><input type="file" id="adInfoPic" accept="image/*" style="display:none" onchange="adInfoPicSet(this)"><i class="ri-image-add-line" id="adInfoPicIco"></i><img id="adInfoPicImg" alt="" style="display:none"></label>
+            <textarea class="f-input" id="adInfoText" maxlength="90" placeholder="A short line beside the picture, e.g. Fresh burgers, delivered fast"></textarea>
+          </div>
+          <div class="hint">Shows above your button once it opens: picture on the left, your line beside it.</div></div>
+        <div class="ad-field"><label>Questions people can tap <span class="ad-opt">up to 4</span></label>
+          <div class="ad-qs">
+            <input type="text" class="f-input adq" maxlength="60" placeholder="e.g. Do you deliver to Lagos?">
+            <input type="text" class="f-input adq" maxlength="60" placeholder="e.g. What are your opening hours?">
+            <input type="text" class="f-input adq" maxlength="60" placeholder="Another question">
+            <input type="text" class="f-input adq" maxlength="60" placeholder="Another question">
+          </div>
+          <div class="hint">Each one becomes a button. When someone taps it, it arrives in your messages as a question from them and you answer in the chat.</div></div>
         <div class="ad-field"><label>CTA button color</label><div class="ad-colors" id="adColorGrid"></div></div>
         <div class="ad-field"><label>Boost duration &amp; price</label><div class="ad-dur" id="adDurationGrid"></div></div>
         <div class="rows" style="border-top:none;margin-top:10px">
@@ -2648,6 +2670,9 @@ async function submitAd(){
   [['hide_likes','adHideLikes'],['hide_saves','adHideSaves'],['hide_shares','adHideShares']].forEach(a=>{if($(a[1]).checked)fd.append(a[0],'1')});
   fd.append('ad_cta_text',$('ad_cta_text_hidden').value.trim());fd.append('ad_cta_url',$('ad_cta_url_hidden').value);
   fd.append('ad_cta_color',$('ad_cta_color_hidden').value);fd.append('ad_duration_days',$('ad_duration_days_hidden').value);fd.append('ad_price',$('ad_price_hidden').value);
+  const _it=($('adInfoText').value||'').trim().slice(0,90);if(_it)fd.append('ad_info_text',_it);
+  document.querySelectorAll('.adq').forEach(i=>{const v=i.value.trim();if(v)fd.append('ad_q[]',v)});
+  const _ip=$('adInfoPic').files[0];if(_ip)fd.append('ad_info_pic',_ip);
   fd.append('meme_file',adMedia[0].file);
   adMedia.slice(1).forEach(m=>fd.append('extra_media[]',m.file));
   closeSheet('sh-elevate');
@@ -2658,6 +2683,11 @@ async function submitAd(){
     PG.done('Ad submitted',d.msg||'');
     setTimeout(()=>{location.href=location.pathname},1100);
   }catch(e){PG.fail(e.message);posting=false;btn.disabled=false}
+}
+function adInfoPicSet(inp){
+  const f=inp.files&&inp.files[0],img=$('adInfoPicImg'),ico=$('adInfoPicIco');
+  if(!f||!/^image\//.test(f.type)){inp.value='';img.style.display='none';ico.style.display='';return}
+  img.src=URL.createObjectURL(f);img.style.display='block';ico.style.display='none';
 }
 function syncCtaText(){
   const s=$('adCtaText'),c=$('adCtaTextCustom');

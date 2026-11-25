@@ -272,6 +272,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['login'])) {
                     } catch (Throwable $e) { /* columns not created yet: nothing to reactivate */ }
 
                     $_SESSION['user_id']  = $uid;
+                    $_SESSION['dz_login_at'] = time() . '-' . bin2hex(random_bytes(4));   // lets Zeems show its swipe tutorial once after every login
                     $_SESSION['accounts'] = [$uid];
 
                     $ls = $conn->prepare("SELECT linked_user_id FROM linked_accounts WHERE primary_user_id = ?");

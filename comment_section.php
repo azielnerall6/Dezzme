@@ -74,6 +74,59 @@ function cs_rows($sql, $types = '', $p = []) {
     return $r;
 }
 function cs_one($sql, $types = '', $p = []) { $r = cs_rows($sql, $types, $p); return $r[0] ?? null; }
+
+/* ── "Search · …" topic of a post: the caption, hashtags, audio title, category and the top comments vote for words / word pairs,
+      then every candidate is checked against the other posts so the row only suggests what really returns results. Cached 6 hours per post. ── */
+function cs_topic($memeId, $caption) {
+    $memeId = (int)$memeId; if ($memeId <= 0) return '';
+    try { $GLOBALS['conn']->query("CREATE TABLE IF NOT EXISTS post_topic (meme_id INT NOT NULL PRIMARY KEY, topic VARCHAR(120) NOT NULL, made_at DATETIME NOT NULL)"); } catch (Throwable $e) {}
+    try { $c = cs_one('SELECT topic FROM post_topic WHERE meme_id = ? AND made_at > (NOW() - INTERVAL 6 HOUR)', 'i', [$memeId]); if ($c) return (string)$c['topic']; } catch (Throwable $e) {}
+    static $stop = null;
+    if ($stop === null) $stop = array_flip(explode(' ', 'the and for with this that have from your you are was were but not just they them what when where which will would could should about into over than then there their been being also more most some very like our out all any can had has its how who why get got too one two her his she him now see saw look looks looked let lets going gone made make makes want wants need needs know says said say really still even much many such only come came back after before again here these those because while every another other thing things something someone people guys guy yall omg lol lmao wow new today day post video pic picture photo check link follow tag tracks love great good nice best cool haha hahaha funny please thanks thank yes yeah yep nope bro dude man girl lmfao fr tbh imo'));
+    $sc = []; $first = [];
+    $add = function ($w, $pts, $pos = 0) use (&$sc, &$first, $stop) {
+        $w = mb_strtolower(trim($w), 'UTF-8'); if ($w === '' || isset($stop[$w]) || mb_strlen($w, 'UTF-8') < 3 || ctype_digit($w)) return;
+        $sc[$w] = ($sc[$w] ?? 0) + $pts + min(mb_strlen($w, 'UTF-8'), 9) / 12; if (!isset($first[$w])) $first[$w] = $pos;
+    };
+    $words = function ($t) { preg_match_all("/[\\p{L}][\\p{L}\\p{N}']{2,}/u", preg_replace(['~https?://\\S+~', '~[@#]\\w+~u'], ' ', (string)$t), $m); return array_map(function ($w) { return preg_replace("/'s$/u", '', mb_strtolower($w, 'UTF-8')); }, $m[0]); };
+    $caption = (string)$caption;
+    /* hashtags: strongest signal; CamelCase and snake_case are split into words */
+    $tagWords = [];
+    if (preg_match_all('/#([\\p{L}\\p{N}_]+)/u', $caption, $m)) foreach ($m[1] as $h) { $h = str_replace('_', ' ', preg_replace('/(?<=[a-z0-9])(?=[A-Z])/', ' ', $h)); foreach (preg_split('/\\s+/', trim($h)) as $w) { $add($w, 5, 0); $tagWords[] = mb_strtolower($w, 'UTF-8'); } }
+    $cw = $words($caption); foreach ($cw as $i => $w) $add($w, 3, $i + 1);
+    /* caption word pairs ("older woman", "beach day") */
+    $pairs = []; for ($i = 0; $i + 1 < count($cw); $i++) { if (!isset($stop[$cw[$i]]) && !isset($stop[$cw[$i + 1]]) && strlen($cw[$i]) > 2 && strlen($cw[$i + 1]) > 2) $pairs[] = $cw[$i] . ' ' . $cw[$i + 1]; }
+    /* audio title, category, top comments */
+    try { $a = cs_one('SELECT a.title FROM meme_audio ma JOIN audios a ON a.id = ma.audio_id WHERE ma.meme_id = ? AND (ma.is_original IS NULL OR ma.is_original = 0) LIMIT 1', 'i', [$memeId]); if ($a) foreach ($words($a['title']) as $w) $add($w, 1.2, 40); } catch (Throwable $e) {}
+    try { $a = cs_one('SELECT category FROM memes WHERE id = ?', 'i', [$memeId]); if ($a && !empty($a['category'])) foreach ($words($a['category']) as $w) $add($w, 2, 30); } catch (Throwable $e) {}
+    try { foreach (cs_rows('SELECT text FROM comments WHERE meme_id = ? AND parent_id IS NULL ORDER BY id DESC LIMIT 40', 'i', [$memeId]) as $r) foreach ($words($r['text']) as $w) if (isset($sc[$w]) || count($sc) < 4) $add($w, 0.6, 60); } catch (Throwable $e) {}
+    if (!$sc) return '';
+    arsort($sc);
+    $cands = array_slice(array_keys($sc), 0, 8);
+    /* how many OTHER posts mention it: a phrase nobody else has is not worth a search */
+    $hits = function ($t) use ($memeId) {
+        try { $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $t) . '%'; $r = cs_one('SELECT COUNT(*) AS n FROM (SELECT id FROM memes WHERE id <> ? AND caption LIKE ? LIMIT 25) x', 'is', [$memeId, $like]); return (int)($r['n'] ?? 0); } catch (Throwable $e) { return 0; }
+    };
+    $best = []; foreach ($cands as $w) { $n = $hits($w); $best[$w] = $sc[$w] * (1 + log(1 + $n)) * ($n ? 1 : .35); }
+    foreach (array_slice(array_unique($pairs), 0, 5) as $p) { $n = $hits($p); if ($n) $best[$p] = (($sc[explode(' ', $p)[0]] ?? 1) + ($sc[explode(' ', $p)[1]] ?? 1)) * .8 * (1 + log(1 + $n)); }
+    arsort($best); $keys = array_keys($best); $top = $best[$keys[0]];
+    /* one word, two, three or four: every strong word of the post that other posts also use joins the phrase (kept in reading order) */
+    $pick = [$keys[0]];
+    foreach (array_slice($keys, 1, 8) as $k) {
+        if (count($pick) >= 4) break;
+        if ($best[$k] < $top * .38) break;
+        $dup = false; foreach ($pick as $p) { if (strpos(' ' . $p . ' ', ' ' . $k . ' ') !== false || strpos(' ' . $k . ' ', ' ' . $p . ' ') !== false) $dup = true; }
+        if ($dup) continue;
+        if (strpos($k, ' ') === false && !$hits($k) && !isset($sc[$k])) continue;
+        $pick[] = $k;
+    }
+    usort($pick, function ($x, $y) use ($first) { $fx = $first[explode(' ', $x)[0]] ?? 99; $fy = $first[explode(' ', $y)[0]] ?? 99; return $fx <=> $fy; });
+    $topic = implode(' ', $pick);
+    $seenW = []; $topic = implode(' ', array_filter(explode(' ', $topic), function ($w) use (&$seenW) { if (isset($seenW[$w])) return false; $seenW[$w] = 1; return true; }));
+    $topic = mb_substr(trim($topic), 0, 60, 'UTF-8');
+    try { $st = $GLOBALS['conn']->prepare('REPLACE INTO post_topic (meme_id, topic, made_at) VALUES (?, ?, NOW())'); if ($st) { $st->bind_param('is', $memeId, $topic); $st->execute(); $st->close(); } } catch (Throwable $e) {}
+    return $topic;
+}
 function cs_meme_owner($memeId) {
     $r = cs_one('SELECT uploaded_by FROM memes WHERE id = ?', 'i', [$memeId]);
     if (!$r) cs_fail('Meme not found', 404);
@@ -459,6 +512,7 @@ function cs_api() {
                 if (!$pm) { try { $pm = cs_one('SELECT m.caption, m.created_at, 0 AS views, m.uploaded_by, u.username, u.nickname, u.profile_pic, COALESCE(u.is_verified,0) AS is_verified FROM memes m JOIN users u ON u.id = m.uploaded_by WHERE m.id = ?', 'i', [$meme]); } catch (Throwable $e) { $pm = null; } }
                 if ($pm) {
                     $out['caption'] = (string)($pm['caption'] ?? '');
+                    try { $out['topic'] = cs_topic($meme, $out['caption']); } catch (Throwable $e) { $out['topic'] = ''; }
                     $co_pl = null;
                     try {
                         if (!function_exists('dz_collab_payload') && is_file(__DIR__ . '/dz_collab.php')) require_once __DIR__ . '/dz_collab.php';
@@ -927,7 +981,16 @@ $CS_NONCE = htmlspecialchars((string)($nonce ?? ''), ENT_QUOTES, 'UTF-8'); // us
 .cs-ph-name .cs-vb,.cs-rs-nm .cs-vb{margin-left:.3em;vertical-align:-.1em}
 .cs-by{color:var(--cs-sub)}.cs-by .h{color:var(--cs-red)}
 .cs-text{margin-top:.15em;white-space:pre-wrap;word-wrap:break-word}
-.cs-text .m{color:var(--cs-red);font-weight:600}
+.cs-text .m,.cs-ph-cap .m,a.cs-mn{color:var(--cs-red);font-weight:600;text-decoration:none}
+a.cs-ht{color:var(--gw,var(--cs-sub));font-weight:600;text-decoration:none}
+a.cs-mn:hover,a.cs-ht:hover{text-decoration:underline}
+a.cs-srch{display:flex;align-items:center;gap:11px;box-sizing:border-box;width:calc(100% + .7em);margin:10px -.35em 8px;padding:11px 14px;border:1px solid rgba(138,124,255,.38);border-radius:4px;background:none;color:#9486ec;font-weight:600;font-size:.95em;line-height:1.2;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:border-color .15s ease,opacity .15s ease}
+a.cs-srch svg{flex:none;width:18px;height:18px;opacity:.95}
+a.cs-srch .t{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+a.cs-srch .t i{font-style:normal;font-weight:500;opacity:.7;margin-right:.35em}
+a.cs-srch .go{flex:none;width:16px;height:16px;opacity:.7}
+a.cs-srch:active{border-color:rgba(158,146,255,.6);opacity:.75}
+:root[data-theme="light"] a.cs-srch{color:#4a3cc4;border-color:rgba(84,70,210,.35);background:none}
 .cs-tail{white-space:nowrap}
 .cs-moretx{color:var(--cs-red);font-weight:600;cursor:pointer}
 .cs-moretx:hover{opacity:.8}
@@ -2401,11 +2464,19 @@ window.CommentSection = (() => {
   /* ───────────── comment text (with @mentions) ───────────── */
   /* long comments: first 25 words, "more" adds the next 25, at the end "Show less" returns to 25 */
   const CLAMP = 25;
+  /* @name -> profile, #tag -> search: same links (and colours) as the captions in Zeems */
+  function rich(d, str) {
+    str.split(/([@#]\w+)/).forEach(p => {
+      if (/^@\w+$/.test(p)) { const a = el('a', 'cs-mn', p); a.href = 'profile.php?username=' + encodeURIComponent(p.slice(1)); a.onclick = e => e.stopPropagation(); d.appendChild(a); }
+      else if (/^#\w+$/.test(p)) { const a = el('a', 'cs-ht', p); a.href = 'search.php?focus=1&mq=' + encodeURIComponent(p); a.onclick = e => e.stopPropagation(); d.appendChild(a); }
+      else if (p) d.appendChild(document.createTextNode(p));
+    });
+  }
   function fillText(d, t) { d._full = String(t); d._n = CLAMP; paintText(d); }
   function paintText(d) {
     const t = d._full, toks = t.match(/\S+\s*/g) || [], total = toks.length;
     d.textContent = '';
-    const put = str => str.split(/(@\w+)/).forEach(p => d.appendChild(/^@\w+/.test(p) ? el('span', 'm', p) : document.createTextNode(p)));
+    const put = str => rich(d, str);
     if (total <= CLAMP) { put(t); return; }
     const lead = (t.match(/^\s*/) || [''])[0], all = d._n >= total;
     const body = lead + toks.slice(0, all ? total : d._n).join('').replace(/\s+$/, '');
@@ -2781,7 +2852,7 @@ window.CommentSection = (() => {
       top.append(tb);
     }
     box.append(top);
-    const cap = el('div', 'cs-ph-cap'); if (h.caption) cap.textContent = h.caption; box.append(cap);
+    const cap = el('div', 'cs-ph-cap'); if (h.caption) rich(cap, h.caption); box.append(cap);
     const pollBox = el('div', 'cs-poll'); pollBox.style.display = 'none'; box.append(pollBox); loadPoll(pollBox);   // the poll's choices come right after the caption
     {                                                                 // the date and the views always show (a post with no views yet shows "0 Views")
       const m = el('div', 'cs-ph-meta');
@@ -2844,6 +2915,35 @@ window.CommentSection = (() => {
     PF[id] = {t: Date.now(), p: api('list', {params: {meme_id: id, page: 1, sort: 'relevant'}})};
     PF[id].p.catch(() => { delete PF[id]; });
   }
+  /* "Search · beach grandma": a shortcut built from the post's own hashtags (or its main words) that opens search with it */
+  const STOP = new Set('the and for with this that have from your you are was were but not just they them what when where which will would could should about into over than then there their been being also more most some very like our out all any can had has its how who why get got too one two her his she him now see saw look looks looked let lets going gone made make makes want wants need needs know says said say really still even much many such only come came back after before again here these those because while every another other thing things something someone people guys guy yall omg lol lmao wow new today day post video pic picture photo check link follow tag tracks'.split(' '));
+  function searchPhrase(cap) {
+    cap = String(cap || ''); if (!cap.trim()) return '';
+    const seen = {}, out = [];
+    /* hashtags first (CamelCase / snake_case split into words), best first */
+    (cap.match(/#\w+/g) || []).forEach(h => {
+      const w = h.slice(1).replace(/_+/g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase().trim();
+      if (w && !seen[w]) { seen[w] = 1; out.push(w); }
+    });
+    if (out.length) { const tags = out.slice(0, 3).join(' ').split(' ').filter((x, i, a) => a.indexOf(x) === i); return tags.slice(0, 4).join(' '); }
+    /* no hashtags: score the caption's words (repeated, early, longer = more important), drop filler */
+    const words = (cap.replace(/https?:\/\/\S+/g, ' ').replace(/[@#]\w+/g, ' ').toLowerCase().match(/[a-zÀ-￿][a-zÀ-￿0-9']{2,}/g) || []).map(w => w.replace(/'s$/, ''));
+    const sc = {}, pos = {};
+    words.forEach((w, i) => { if (STOP.has(w)) return; sc[w] = (sc[w] || 0) + 1.5 + Math.min(w.length, 9) / 9 + (i < 6 ? .6 : 0); if (pos[w] === undefined) pos[w] = i; });
+    const top = Object.keys(sc).sort((a, b) => sc[b] - sc[a] || pos[a] - pos[b]).slice(0, 3).sort((a, b) => pos[a] - pos[b]);
+    return top.join(' ');
+  }
+  function addSearchRow(list, cap, topic) {
+    const old = list.querySelector(':scope > .cs-srch'); if (old) old.remove();
+    const q = (topic && String(topic).trim()) || searchPhrase(cap); if (!q) return;
+    const a = el('a', 'cs-srch'); a.href = 'search.php?focus=1&mq=' + encodeURIComponent(q);
+    a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.3-4.3"/></svg>';
+    const t = el('span', 't'); t.appendChild(el('i', '', 'Search ·')); t.appendChild(document.createTextNode(q)); a.appendChild(t);
+    a.insertAdjacentHTML('beforeend', '<svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>');
+    a.onclick = e => e.stopPropagation();
+    const hd = list.querySelector(':scope > .cs-ph');
+    if (hd) hd.after(a); else list.insertBefore(a, list.firstChild);
+  }
   async function load(first) {
     if (S.busy) return; S.busy = true; if (first) S.fail = false;
     const list = $('csList');
@@ -2862,7 +2962,8 @@ window.CommentSection = (() => {
       if (first && !S.header && j.post) { S.header = defaultHeader(j.post); FOL[j.post.owner_id] = !!j.post.following; list.insertBefore(renderHeader(S.header), list.firstChild); refreshHeader(); clearInterval(phTimer); phTimer = setInterval(refreshHeader, 500); }
       if (first && S.header && j.post && j.post.is_verified && !S.header.isVerified) { S.header.isVerified = true; const pn = list.querySelector('.cs-ph-name'); if (pn && !pn.querySelector('.cs-vb')) pn.appendChild(vbEl()); }
       if (first && S.header && j.post && (S.header.views === undefined || S.header.views === null || S.header.views === '')) setPostViews(j.post.views);
-      if (first && S.header && j.caption !== undefined) { const ce = list.querySelector('.cs-ph-cap'); if (ce && !S.header.caption) ce.textContent = j.caption; }
+      if (first && S.header && j.caption !== undefined) { const ce = list.querySelector('.cs-ph-cap'); if (ce && !S.header.caption) { ce.textContent = ''; rich(ce, j.caption); } }
+      if (first) addSearchRow(list, (S.header && S.header.caption) || j.caption || (j.post && j.post.caption) || '', j.topic);
       if (first) { const bar = $('csText').closest('.cs-bar'); if (bar) bar.style.display = j.off ? 'none' : ''; }
       j.items.forEach(c => list.appendChild(render(c, 'top')));
       S.more = j.more; S.page++;
